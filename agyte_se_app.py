@@ -81,7 +81,7 @@ def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento
         return False, str(e)
 
 def contar_participantes():
-    """Conta o total de participantes no banco"""
+    """Conta o total de participantes no banco - SEMPRE CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
         if conn is None:
@@ -95,11 +95,12 @@ def contar_participantes():
         cur.close()
         conn.close()
         return total
-    except:
+    except Exception as e:
+        print(f"Erro ao contar participantes: {e}")
         return 0
 
 def verificar_cpf_existente(cpf):
-    """Verifica se CPF já está cadastrado no banco"""
+    """Verifica se CPF já está cadastrado no banco - CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
         if conn is None:
@@ -108,29 +109,25 @@ def verificar_cpf_existente(cpf):
         cur = conn.cursor()
         cpf_limpo = ''.join(filter(str.isdigit, cpf))
         
+        # Consulta direta com o CPF formatado
         cur.execute("""
-            SELECT cpf FROM public.agyte_participantes 
-            WHERE evento = 'FUNCIONAL'
-        """)
+            SELECT COUNT(*) FROM public.agyte_participantes 
+            WHERE evento = 'FUNCIONAL' 
+            AND REPLACE(REPLACE(cpf, '.', ''), '-', '') = %s
+        """, (cpf_limpo,))
         
-        cpfs_banco = cur.fetchall()
-        
-        for cpf_banco in cpfs_banco:
-            if cpf_banco and cpf_banco[0]:
-                cpf_banco_limpo = ''.join(filter(str.isdigit, str(cpf_banco[0])))
-                if cpf_banco_limpo == cpf_limpo:
-                    cur.close()
-                    conn.close()
-                    return True
+        resultado = cur.fetchone()
+        existe = resultado[0] > 0 if resultado else False
         
         cur.close()
         conn.close()
-        return False
+        return existe
     except Exception as e:
+        print(f"Erro ao verificar CPF: {e}")
         return False
 
 def obter_proximo_numero():
-    """Obtém o próximo número VIP baseado no banco"""
+    """Obtém o próximo número VIP baseado no banco - CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
         if conn is None:
@@ -148,7 +145,8 @@ def obter_proximo_numero():
         cur.close()
         conn.close()
         return ultimo_numero + 1
-    except:
+    except Exception as e:
+        print(f"Erro ao obter próximo número: {e}")
         return 1
 
 # ==============================
@@ -162,7 +160,7 @@ st.set_page_config(
 )
 
 # ==============================
-# CSS COMPLETO (MANTIDO COM ADIÇÕES)
+# CSS COMPLETO (MANTIDO COM AJUSTES DE RESPONSIVIDADE)
 # ==============================
 st.markdown("""
 <style>
@@ -343,7 +341,7 @@ st.markdown("""
     }
     
     /* =============================
-       MEDIA QUERIES RESPONSIVAS
+       MEDIA QUERIES RESPONSIVAS - APENAS AJUSTES NECESSÁRIOS
     ============================= */
     @media (max-width: 768px) {
         .success-box-big,
@@ -370,75 +368,74 @@ st.markdown("""
         }
         
         .main-container {
-            margin: 1rem !important;
-            padding: 2rem !important;
+            margin: 0.5rem !important;
+            padding: 1.5rem !important;
             border-radius: 25px !important;
         }
         
         .header-container {
             padding: 1.5rem !important;
             border-radius: 20px !important;
-            margin-bottom: 2rem !important;
+            margin-bottom: 1.5rem !important;
         }
         
         .title-text {
-            font-size: 3rem !important;
+            font-size: 2.8rem !important;
             letter-spacing: -1px !important;
         }
         
         .subtitle-text {
-            font-size: 1.4rem !important;
-            letter-spacing: 4px !important;
+            font-size: 1.2rem !important;
+            letter-spacing: 3px !important;
         }
         
         .event-badge {
-            padding: 1rem 2rem !important;
-            font-size: 1rem !important;
-            letter-spacing: 3px !important;
-            margin-top: 1.5rem !important;
+            padding: 0.8rem 1.5rem !important;
+            font-size: 0.9rem !important;
+            letter-spacing: 2px !important;
+            margin-top: 1rem !important;
         }
         
         .form-container {
-            padding: 2rem !important;
-            margin: 2rem auto !important;
-            border-radius: 25px !important;
+            padding: 1.5rem !important;
+            margin: 1rem auto !important;
+            border-radius: 20px !important;
         }
         
         .form-title {
-            font-size: 2rem !important;
+            font-size: 1.8rem !important;
         }
         
-        /* AJUSTES PARA COLUNAS EM MOBILE */
+        /* AJUSTES PARA COLUNAS EM MOBILE - APENAS TAMANHO */
         .st-emotion-cache-1r6slb0 {
             flex-direction: column;
+            gap: 1rem;
         }
         
-        /* HALTERES MAIORES EM MOBILE */
-        .real-dumbbell {
-            width: 320px !important;
-            height: 120px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            top: 10% !important;
+        .st-emotion-cache-1r6slb0 > div {
+            width: 100% !important;
         }
         
-        .real-plate {
-            width: 180px !important;
-            height: 180px !important;
-            right: 50% !important;
-            transform: translateX(50%) !important;
-            bottom: 10% !important;
+        /* INPUTS EM MOBILE */
+        .stTextInput > div > div > input,
+        .stSelectbox > div > div > select {
+            padding: 0.8rem !important;
+            font-size: 1rem !important;
         }
         
-        .real-plate::after {
-            font-size: 32px !important;
+        /* BOTÃO EM MOBILE */
+        .stButton button {
+            padding: 1rem 1.5rem !important;
+            font-size: 1.2rem !important;
+            letter-spacing: 2px !important;
+            margin-top: 1rem !important;
         }
     }
     
     @media (max-width: 480px) {
         .success-box-big,
         .error-box {
-            min-width: 250px;
+            min-width: 280px;
             padding: 1.5rem;
         }
         
@@ -455,27 +452,22 @@ st.markdown("""
         }
         
         .subtitle-text {
-            font-size: 1.1rem !important;
-            letter-spacing: 3px !important;
-        }
-        
-        .real-dumbbell {
-            width: 280px !important;
-            height: 100px !important;
-        }
-        
-        .real-plate {
-            width: 150px !important;
-            height: 150px !important;
+            font-size: 1rem !important;
+            letter-spacing: 2px !important;
         }
         
         .form-title {
-            font-size: 1.6rem !important;
+            font-size: 1.5rem !important;
+        }
+        
+        .main-container {
+            padding: 1rem !important;
+            margin: 0.25rem !important;
         }
     }
     
     /* =============================
-       CENA GYM REAL
+       CENA GYM REAL - MANTIDO IGUAL
     ============================= */
     .gym-real {
         position: fixed;
@@ -689,7 +681,7 @@ st.markdown("""
     }
     
     /* =============================
-       ANIMAÇÕES
+       ANIMAÇÕES - MANTIDAS IGUAIS
     ============================= */
     @keyframes floatDumbbell {
         0%, 100% { transform: translate(0, 0) rotate(0deg); }
@@ -1185,12 +1177,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================
-# CONTADORES PREMIUM
+# CONTADORES PREMIUM - COM DADOS ATUALIZADOS DO BANCO
 # ==============================
+# CONSULTA ATUAL DO BANCO
+total_banco_atual = contar_participantes()
+proximo_numero_atual = obter_proximo_numero()
+
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown("""
+    st.markdown(f"""
     <div style='background: rgba(0, 0, 0, 0.7); 
                 border-radius: 25px; 
                 padding: 2rem; 
@@ -1204,7 +1200,7 @@ with col1:
                     color: #ffffff;
                     text-shadow: 0 0 30px #ff1493;
                     margin-bottom: 0.8rem;'>
-            50
+            {total_banco_atual}/50
         </div>
         <div style='color: #ffb6c1; 
                     font-size: 1.2rem; 
@@ -1275,10 +1271,6 @@ if 'mostrar_caixa_erro' not in st.session_state:
     st.session_state.mostrar_caixa_erro = False
 if 'mensagem_erro' not in st.session_state:
     st.session_state.mensagem_erro = ""
-
-# Obter dados do banco
-total_banco = contar_participantes()
-proximo_numero = obter_proximo_numero()
 
 with st.form("cadastro_premium"):
     col1, col2 = st.columns(2)
@@ -1464,12 +1456,16 @@ with st.form("cadastro_premium"):
 st.markdown("</div>", unsafe_allow_html=True)
 
 # ==============================
-# PROCESSAMENTO DO FORMULÁRIO
+# PROCESSAMENTO DO FORMULÁRIO - COM CONSULTAS ATUALIZADAS
 # ==============================
 if submitted:
     # Limpar caixas anteriores
     st.session_state.mostrar_caixa_sucesso = False
     st.session_state.mostrar_caixa_erro = False
+    
+    # ATUALIZAR DADOS DO BANCO ANTES DE PROCESSAR
+    total_banco_atual = contar_participantes()
+    proximo_numero_atual = obter_proximo_numero()
     
     # Limpar e formatar dados
     nome_limpo = nome.strip().upper() if nome else ""
@@ -1494,13 +1490,13 @@ if submitted:
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
-    # Verificar limite
-    elif total_banco >= 50:
+    # Verificar limite - USANDO DADOS ATUALIZADOS
+    elif total_banco_atual >= 50:
         st.session_state.mensagem_erro = "EVENTO ESGOTADO! Todas as 50 vagas já foram preenchidas."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
-    # Verificar CPF duplicado
+    # Verificar CPF duplicado - CONSULTA ATUALIZADA
     elif verificar_cpf_existente(cpf_limpo):
         st.session_state.mensagem_erro = "Este CPF já está cadastrado!"
         st.session_state.mostrar_caixa_erro = True
@@ -1517,12 +1513,12 @@ if submitted:
             setor=setor_formatado,
             unidade=unidade_formatada,
             telefone=telefone_limpo,
-            numero_vip=proximo_numero,
+            numero_vip=proximo_numero_atual,  # USA NÚMERO ATUALIZADO
             evento="FUNCIONAL"
         )
         
         if success:
-            st.session_state.numero_vip_sucesso = proximo_numero
+            st.session_state.numero_vip_sucesso = proximo_numero_atual
             st.session_state.mostrar_caixa_sucesso = True
             
             # Efeito visual de vibração
@@ -1539,10 +1535,11 @@ if submitted:
     st.rerun()
 
 # ==============================
-# CONTADOR DE VAGAS
+# CONTADOR DE VAGAS - SEMPRE ATUALIZADO
 # ==============================
-total_banco = contar_participantes()
-vagas_restantes = 50 - total_banco if total_banco < 50 else 0
+# CONSULTA FINAL DO BANCO
+total_final = contar_participantes()
+vagas_restantes = 50 - total_final if total_final < 50 else 0
 
 st.markdown(f"""
 <div class="counter-container" style='text-align: center; padding: 1.5rem; 
@@ -1556,7 +1553,7 @@ st.markdown(f"""
                 -webkit-text-fill-color: transparent;
                 margin-bottom: 0.5rem;
                 text-shadow: 0 0 40px rgba(255, 20, 147, 0.6);'>
-        {total_banco}/50
+        {total_final}/50
     </div>
     <div style='color: #ffffff; 
                 font-weight: 800; 
@@ -1568,7 +1565,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-if total_banco >= 50:
+if total_final >= 50:
     st.markdown(f"""
     <div style='color: #ff1493; 
                 font-size: 1.1rem; 
@@ -1579,7 +1576,7 @@ if total_banco >= 50:
                 display: inline-block;
                 box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);
                 animation: pulse 2s infinite;'>
-        🚫 EVENTO ESGOTADO • {total_banco}/50
+        🚫 EVENTO ESGOTADO • {total_final}/50
     </div>
     """, unsafe_allow_html=True)
 else:
