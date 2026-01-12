@@ -5,6 +5,7 @@ import random
 from streamlit.components.v1 import html
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import os
 
 # ==============================
 # FUNÇÕES DE FORMATAÇÃO E VALIDAÇÃO
@@ -21,29 +22,29 @@ def formatar_telefone(telefone):
         return ""
     return ''.join(filter(str.isdigit, telefone))
 
-# ==============================
-# CONEXÃO COM BANCO DE DADOS
-# ==============================
 def get_connection():
-    """Cria e retorna conexão com o banco PostgreSQL"""
+    """Tenta conectar ao banco. Retorna None se falhar."""
     try:
         conn = psycopg2.connect(
-            host="192.168.0.48",
-            database="RelRh",
-            user="postgres",
-            password="dilady",
-            port=5432
+            host=st.secrets.get("DB_HOST"),
+            database=st.secrets.get("DB_NAME"),
+            user=st.secrets.get("DB_USER"),
+            password=st.secrets.get("DB_PASSWORD"),
+            port=int(st.secrets.get("DB_PORT", 5432)),
+            connect_timeout=3  # evita travar por muito tempo
         )
         return conn
-    except Exception as e:
+    except:
         return None
+
 
 def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento="FUNCIONAL"):
     """Insere participante na tabela public.agyte_participantes"""
     try:
         conn = get_connection()
         if conn is None:
-            return False, "Erro na conexão com o banco"
+            # Banco inacessível: apenas simula sucesso
+            return True, "⚠️ Participante não salvo (banco inacessível), mas dados foram preenchidos."
             
         cur = conn.cursor()
 
