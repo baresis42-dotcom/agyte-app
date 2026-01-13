@@ -430,6 +430,20 @@ st.markdown("""
             letter-spacing: 2px !important;
             margin-top: 1rem !important;
         }
+        
+        /* AJUSTE DO CÍRCULO EM MOBILE */
+        .circle-header {
+            width: 180px !important;
+            height: 180px !important;
+        }
+        
+        .circle-header .agyte-juntos {
+            font-size: 1.8rem !important;
+        }
+        
+        .circle-header .juntos {
+            font-size: 0.85rem !important;
+        }
     }
     
     @media (max-width: 480px) {
@@ -463,6 +477,26 @@ st.markdown("""
         .main-container {
             padding: 1rem !important;
             margin: 0.25rem !important;
+        }
+        
+        .circle-header {
+            width: 150px !important;
+            height: 150px !important;
+        }
+        
+        .circle-header .agyte-juntos {
+            font-size: 1.5rem !important;
+        }
+        
+        .circle-header .juntos {
+            font-size: 0.75rem !important;
+        }
+        
+        .food-donation {
+            padding: 0.8rem !important;
+            font-size: 0.9rem !important;
+            margin: 1rem auto !important;
+            max-width: 95% !important;
         }
     }
     
@@ -1008,7 +1042,7 @@ st.markdown("""
         text-align: center !important;
     }
     
-    /* BOTÃO PREMIUM RESPONSIVO */
+    /* BOTÃO PREMIUM RESPONSIVO - MELHORADO E MAIOR */
     .stButton button {
         background: linear-gradient(45deg, 
             #ff1493 0%, 
@@ -1016,64 +1050,87 @@ st.markdown("""
             #ff1493 100%) !important;
         background-size: 200% 100% !important;
         color: white !important;
-        border: 3px solid rgba(255, 255, 255, 0.9) !important;
-        border-radius: 20px !important;
-        padding: 1.5rem 3rem !important;
-        font-size: 1.6rem !important;
+        border: 4px solid rgba(255, 255, 255, 0.9) !important;
+        border-radius: 25px !important;
+        padding: 1.8rem 3rem !important; /* MAIOR */
+        font-size: 1.8rem !important; /* MAIOR */
         font-weight: 900 !important;
-        letter-spacing: 4px !important;
+        letter-spacing: 3px !important;
         text-transform: uppercase !important;
         transition: all 0.3s ease !important;
         width: 100% !important;
         margin-top: 2rem !important;
         box-shadow: 
-            0 0 80px rgba(255, 20, 147, 1),
-            0 20px 70px rgba(0, 0, 0, 0.9) !important;
-        animation: buttonPulse 2s infinite alternate;
+            0 0 120px rgba(255, 20, 147, 1),
+            0 30px 90px rgba(0, 0, 0, 0.9),
+            inset 0 0 50px rgba(255, 255, 255, 0.4) !important;
+        animation: buttonPulse 1.2s infinite alternate, buttonShine 3s infinite;
         position: relative;
         overflow: hidden;
         z-index: 2;
+        cursor: pointer !important;
+        display: block !important;
+        text-align: center !important;
     }
     
-    @media (max-width: 768px) {
-        .stButton button {
-            padding: 1.2rem 2rem !important;
-            font-size: 1.3rem !important;
-            letter-spacing: 2px !important;
-            margin-top: 1.5rem !important;
-        }
-    }
-    
-    .stButton button::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, 
-            transparent, 
-            rgba(255, 255, 255, 0.4), 
-            transparent);
-        transition: left 0.5s;
-    }
-    
-    .stButton button:hover::before {
-        left: 100%;
+    .stButton button:hover {
+        transform: scale(1.08) !important; /* MAIOR NO HOVER */
+        box-shadow: 
+            0 0 150px rgba(218, 112, 214, 1),
+            0 35px 110px rgba(0, 0, 0, 1),
+            inset 0 0 60px rgba(255, 255, 255, 0.5) !important;
     }
     
     @keyframes buttonPulse {
         0% { 
             transform: scale(1);
-            box-shadow: 
-                0 0 80px rgba(255, 20, 147, 1),
-                0 20px 70px rgba(0, 0, 0, 0.9);
         }
         100% { 
             transform: scale(1.05);
-            box-shadow: 
-                0 0 100px rgba(218, 112, 214, 1),
-                0 25px 90px rgba(0, 0, 0, 1);
+        }
+    }
+    
+    @keyframes buttonShine {
+        0%, 100% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+    }
+    
+    /* TEXTO DO BOTÃO COM INDICAÇÃO CLARA */
+    .button-text {
+        display: block;
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 0 25px rgba(255, 255, 255, 0.9);
+    }
+    
+    .button-text::after {
+        content: "⬇️ CLIQUE AGORA! ⬇️";
+        display: block;
+        font-size: 1.1rem;
+        font-weight: 900;
+        margin-top: 0.8rem;
+        letter-spacing: 2px;
+        color: rgba(255, 255, 255, 1);
+        animation: arrowBlink 1.5s infinite;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+        background: rgba(0, 0, 0, 0.3);
+        padding: 0.5rem;
+        border-radius: 10px;
+        border: 2px dashed rgba(255, 255, 255, 0.6);
+    }
+    
+    @keyframes arrowBlink {
+        0%, 100% { 
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% { 
+            opacity: 0.8;
+            transform: scale(1.05);
         }
     }
     
@@ -1092,6 +1149,59 @@ st.markdown("""
     /* RODAPÉ MAIS PRÓXIMO */
     .footer-container {
         margin-top: 2rem !important;
+    }
+    
+    /* MENSAGEM DE DOAÇÃO DE ALIMENTOS */
+    .food-donation {
+        background: linear-gradient(135deg, 
+            rgba(255, 215, 0, 0.2) 0%, 
+            rgba(255, 165, 0, 0.2) 100%);
+        border: 3px solid #FFD700;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin: 2rem auto;
+        text-align: center;
+        max-width: 600px;
+        box-shadow: 
+            0 0 50px rgba(255, 215, 0, 0.4),
+            0 15px 40px rgba(0, 0, 0, 0.3);
+        animation: donationGlow 3s infinite alternate;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+    
+    @keyframes donationGlow {
+        0% { 
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.4),
+                       0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        100% { 
+            box-shadow: 0 0 70px rgba(255, 165, 0, 0.6),
+                       0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+    }
+    
+    .food-icon {
+        font-size: 3rem;
+        margin-bottom: 0.8rem;
+        display: block;
+    }
+    
+    .food-title {
+        color: #FFD700;
+        font-size: 1.8rem;
+        font-weight: 900;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    }
+    
+    .food-description {
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1.5;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1129,22 +1239,150 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================
-# CABEÇALHO COM LOGO DILADY
+# CABEÇALHO COM BOLA ROSCA LILÁS E ROSA - AJUSTADO
 # ==============================
+
 st.markdown("""
+<style>
+.main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.circle-header {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FF69B4 0%, #DA70D6 50%, #9370DB 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.5rem;
+    box-shadow: 
+        0 10px 30px rgba(255, 20, 147, 0.4),
+        0 0 80px rgba(218, 112, 214, 0.6),
+        inset 0 0 40px rgba(255, 255, 255, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+    animation: circlePulse 4s infinite alternate;
+}
+
+@keyframes circlePulse {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(255, 20, 147, 0.4),
+                    0 0 80px rgba(218, 112, 214, 0.6);
+    }
+    100% { 
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(255, 20, 147, 0.6),
+                    0 0 100px rgba(218, 112, 214, 0.8);
+    }
+}
+
+.circle-header::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: circleRotate 10s linear infinite;
+}
+
+@keyframes circleRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.circle-header .programa {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    position: relative;
+    z-index: 1;
+    line-height: 1;
+}
+
+.circle-header .agyte {
+    font-size: clamp(1.3rem, 5.8vw, 2.2rem); /* reduz no mobile */
+    font-weight: 900;
+    color: white;
+    margin: 0.3rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    text-shadow: 
+        0 0 20px rgba(255, 255, 255, 0.9),
+        0 0 40px rgba(255, 20, 147, 0.7);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    text-align: center;
+    line-height: 1;
+
+    white-space: nowrap;     /* 🔴 OBRIGA FICAR NA MESMA LINHA */
+    overflow: hidden;        /* segurança */
+}
+
+.circle-header .juntos {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    position: relative;
+    z-index: 1;
+    margin-top: 0.3rem;
+    line-height: 1;
+    text-align: center;
+}
+
+.event-badge {
+    margin-top: 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(45deg, rgba(255, 20, 147, 0.8), rgba(218, 112, 214, 0.8));
+    padding: 0.8rem 2rem;
+    border-radius: 30px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 40px rgba(255, 20, 147, 0.5);
+    animation: badgeFloat 4s infinite ease-in-out;
+}
+
+@keyframes badgeFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-8px) scale(1.03); }
+}
+</style>
+
 <div class="main-container">
-    <div class="header-container">
-        <div class="dilady-logo">DILADY
-        </div>
-        <h1 class="title-text">AGYTE-SE</h1>
-        <div class="subtitle-text">TREINO FUNCIONAL</div>
-        <div class="event-badge">
-            🏋️‍♀️ LANÇAMENTO EXCLUSIVO 🏋️‍♂️
-        </div>
-        <div style="margin-top: 2rem; color: rgba(255, 255, 255, 0.95); font-size: 1.3rem; font-weight: 600; max-width: 700px; margin-left: auto; margin-right: auto; padding: 0 1rem;">
-            Descubra a sinergia perfeita entre performance esportiva e elegância premium na nova linha Dilady
-        </div>
+    <div class="circle-header">
+        <div class="programa">PROGRAMA</div>
+        <div class="agyte">AGYTE-SE</div>
+        <div class="juntos">JUNTOS EM MOVIMENTO</div>
     </div>
+    <div class="event-badge">
+        🏋️‍♀️ EVENTO EXCLUSIVO PARA COLABORADORES 🏋️‍♂️
+    </div>
+    <div style="margin-top: 2rem; color: rgba(255, 255, 255, 0.95); font-size: 1.3rem; font-weight: 600; max-width: 700px; margin-left: auto; margin-right: auto; padding: 0 1rem; text-align: center;">
+        Movimente-se, cuide de você e vamos juntos nessa!
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
 # ==============================
@@ -1172,6 +1410,20 @@ st.markdown("""
                 🎫 <span style='color: #e8919e; font-weight: 700;'>50 Convites Exclusivos:</span> Acesso antecipado
             </div>
         </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ==============================
+# MENSAGEM DE DOAÇÃO DE 1KG DE ALIMENTO
+# ==============================
+st.markdown("""
+<div class="food-donation">
+    <div class="food-icon">🥫</div>
+    <div class="food-title">INSCRIÇÃO SOLIDÁRIA</div>
+    <div class="food-description">
+        Para participar, faça sua inscrição e traga <strong>1KG de alimento não perecível</strong> no dia do evento.<br>
+        Vamos juntos promover saúde e ajudar quem mais precisa!
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1256,7 +1508,7 @@ with col3:
 # ==============================
 st.markdown("""
 <div class="form-container">
-    <h2 class="form-title">💪 GARANTA SEU CONVITE VIP!</h2>
+    <h2 class="form-title">💪 GARANTA SUA INSCRIÇÃO!</h2>
     <div style='color: rgba(255, 255, 255, 0.95); text-align: center; margin-bottom: 3rem; font-weight: 600; letter-spacing: 2px; font-size: 1.2rem;'>
         ACESSO EXCLUSIVO • SAÚDE & BEM-ESTAR
     </div>
@@ -1449,9 +1701,56 @@ with st.form("cadastro_premium"):
         """, unsafe_allow_html=True)
     
     # ==============================
-    # BOTÃO DE SUBMIT
+    # BOTÃO DE SUBMIT MELHORADO E MAIOR
     # ==============================
-    submitted = st.form_submit_button("💪 GARANTIR MEU CONVITE VIP AGORA!")
+    col_btn = st.columns([1])
+with col_btn[0]:
+    submitted = st.form_submit_button(
+        "👉 CLIQUE AQUI PRA FAZER SUA INSCRIÇÃO 👈",
+        use_container_width=False
+    )
+
+st.markdown("""
+<style>
+/* Centraliza o botão */
+div[data-testid="stFormSubmitButton"] {
+    display: flex;
+    justify-content: center;
+}
+
+/* Botão principal */
+div[data-testid="stFormSubmitButton"] > button {
+    background: linear-gradient(135deg, #00c853, #2e7d32);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 800;
+    padding: 0.9rem 1.6rem;
+    border-radius: 50px;
+    border: none;
+    width: auto;              /* NÃO estica */
+    min-width: 260px;
+    max-width: 420px;
+    box-shadow: 0 0 25px rgba(0, 200, 83, 0.6);
+    animation: pulseBtn 2s infinite;
+    transition: all 0.25s ease-in-out;
+}
+
+/* Hover */
+div[data-testid="stFormSubmitButton"] > button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 40px rgba(0, 255, 120, 0.9);
+    background: linear-gradient(135deg, #00e676, #1b5e20);
+}
+
+/* Animação pulse */
+@keyframes pulseBtn {
+    0% { box-shadow: 0 0 15px rgba(0, 200, 83, 0.5); }
+    50% { box-shadow: 0 0 35px rgba(0, 255, 120, 0.9); }
+    100% { box-shadow: 0 0 15px rgba(0, 200, 83, 0.5); }
+}
+</style>
+""", unsafe_allow_html=True)
+
 
 st.markdown("</div>", unsafe_allow_html=True)
 
