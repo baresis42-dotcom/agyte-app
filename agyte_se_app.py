@@ -1422,9 +1422,9 @@ st.markdown("""
     <div class="food-icon">🥫</div>
     <div class="food-title">INSCRIÇÃO SOLIDÁRIA</div>
     <div class="food-description">
-        Para participar, faça sua inscrição e traga <strong>1KG de alimento não perecível</strong> no dia do evento.<br>
-        Vamos juntos promover saúde e ajudar quem mais precisa!
-    </div>
+    A inscrição no evento consiste na doação de <strong>1kg de alimento não perecível</strong>.<br>
+    O <strong>RH informará posteriormente</strong> como e quando será feita a entrega.
+</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1925,3 +1925,4 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
+
