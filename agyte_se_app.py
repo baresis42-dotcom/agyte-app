@@ -31,19 +31,18 @@ def get_connection():
             user=st.secrets.get("DB_USER"),
             password=st.secrets.get("DB_PASSWORD"),
             port=int(st.secrets.get("DB_PORT", 5432)),
-            connect_timeout=3  # evita travar por muito tempo
+            connect_timeout=3
         )
         return conn
     except:
         return None
 
 
-def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento="FUNCIONAL"):
+def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento="AULAO_RITMOS"):
     """Insere participante na tabela public.agyte_participantes"""
     try:
         conn = get_connection()
         if conn is None:
-            # Banco inacessível: apenas simula sucesso
             return True, "⚠️ Participante não salvo (banco inacessível), mas dados foram preenchidos."
             
         cur = conn.cursor()
@@ -80,7 +79,7 @@ def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento
             conn.close()
         return False, str(e)
 
-def contar_participantes():
+def contar_participantes(evento="AULAO_RITMOS"):
     """Conta o total de participantes no banco - SEMPRE CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
@@ -88,7 +87,7 @@ def contar_participantes():
             return 0
             
         cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) as total FROM public.agyte_participantes WHERE evento = 'FUNCIONAL'")
+        cur.execute("SELECT COUNT(*) as total FROM public.agyte_participantes WHERE evento = %s", (evento,))
         resultado = cur.fetchone()
         total = resultado[0] if resultado else 0
         
@@ -99,7 +98,7 @@ def contar_participantes():
         print(f"Erro ao contar participantes: {e}")
         return 0
 
-def verificar_cpf_existente(cpf):
+def verificar_cpf_existente(cpf, evento="AULAO_RITMOS"):
     """Verifica se CPF já está cadastrado no banco - CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
@@ -109,12 +108,11 @@ def verificar_cpf_existente(cpf):
         cur = conn.cursor()
         cpf_limpo = ''.join(filter(str.isdigit, cpf))
         
-        # Consulta direta com o CPF formatado
         cur.execute("""
             SELECT COUNT(*) FROM public.agyte_participantes 
-            WHERE evento = 'FUNCIONAL' 
+            WHERE evento = %s 
             AND REPLACE(REPLACE(cpf, '.', ''), '-', '') = %s
-        """, (cpf_limpo,))
+        """, (evento, cpf_limpo))
         
         resultado = cur.fetchone()
         existe = resultado[0] > 0 if resultado else False
@@ -126,7 +124,7 @@ def verificar_cpf_existente(cpf):
         print(f"Erro ao verificar CPF: {e}")
         return False
 
-def obter_proximo_numero():
+def obter_proximo_numero(evento="AULAO_RITMOS"):
     """Obtém o próximo número VIP baseado no banco - CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
@@ -137,8 +135,8 @@ def obter_proximo_numero():
         cur.execute("""
             SELECT COALESCE(MAX(numero_vip), 0) as ultimo_numero 
             FROM public.agyte_participantes 
-            WHERE evento = 'FUNCIONAL'
-        """)
+            WHERE evento = %s
+        """, (evento,))
         resultado = cur.fetchone()
         ultimo_numero = resultado[0] if resultado else 0
         
@@ -153,8 +151,8 @@ def obter_proximo_numero():
 # CONFIGURAÇÃO DO APP
 # ==============================
 st.set_page_config(
-    page_title="AGYTE-SE | LANÇAMENTO FITNESS DILADY",
-    page_icon="💎",
+    page_title="AGYTE-SE | 2° ENCONTRO - AULÃO RITMOS + PILATES",
+    page_icon="💃",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -1052,8 +1050,8 @@ st.markdown("""
         color: white !important;
         border: 4px solid rgba(255, 255, 255, 0.9) !important;
         border-radius: 25px !important;
-        padding: 1.8rem 3rem !important; /* MAIOR */
-        font-size: 1.8rem !important; /* MAIOR */
+        padding: 1.8rem 3rem !important;
+        font-size: 1.8rem !important;
         font-weight: 900 !important;
         letter-spacing: 3px !important;
         text-transform: uppercase !important;
@@ -1074,7 +1072,7 @@ st.markdown("""
     }
     
     .stButton button:hover {
-        transform: scale(1.08) !important; /* MAIOR NO HOVER */
+        transform: scale(1.08) !important;
         box-shadow: 
             0 0 150px rgba(218, 112, 214, 1),
             0 35px 110px rgba(0, 0, 0, 1),
@@ -1239,7 +1237,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================
-# CABEÇALHO COM BOLA ROSCA LILÁS E ROSA - AJUSTADO
+# CABEÇALHO - MANTIDO IGUAL AO ORIGINAL COM PROGRAMA AGYTE-SE
 # ==============================
 
 st.markdown("""
@@ -1315,27 +1313,25 @@ st.markdown("""
 }
 
 .circle-header .agyte {
-    font-size: clamp(1.3rem, 5.8vw, 2.2rem); /* reduz no mobile */
+    font-size: clamp(1.6rem, 6vw, 2.2rem);
     font-weight: 900;
     color: white;
-    margin: 0.3rem 0;
+    margin: 0.2rem 0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-
     text-shadow: 
         0 0 20px rgba(255, 255, 255, 0.9),
         0 0 40px rgba(255, 20, 147, 0.7);
-
+    position: relative;
+    z-index: 1;
+    line-height: 1.1;
+    text-align: center;
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-
-    width: 100%;
-    text-align: center;
-    line-height: 1;
-
-    white-space: nowrap;     /* 🔴 OBRIGA FICAR NA MESMA LINHA */
-    overflow: hidden;        /* segurança */
+    white-space: normal;
+    word-break: keep-all;
 }
 
 .circle-header .juntos {
@@ -1377,10 +1373,10 @@ st.markdown("""
         <div class="juntos">JUNTOS EM MOVIMENTO</div>
     </div>
     <div class="event-badge">
-        🏋️‍♀️ EVENTO EXCLUSIVO PARA COLABORADORES 🏋️‍♂️
+        💃 EVENTO EXCLUSIVO PARA COLABORADORES 🧘‍♀️
     </div>
     <div style="margin-top: 2rem; color: rgba(255, 255, 255, 0.95); font-size: 1.3rem; font-weight: 600; max-width: 700px; margin-left: auto; margin-right: auto; padding: 0 1rem; text-align: center;">
-        Movimente-se, cuide de você e vamos juntos nessa!
+        <strong>2° ENCONTRO: AULÃO RITMOS + PILATES SOLO</strong>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1397,17 +1393,17 @@ st.markdown("""
                 backdrop-filter: blur(15px);
                 box-shadow: 0 0 60px rgba(255, 20, 147, 0.3);'>
         <h2 style='color: #ffffff; margin-bottom: 1.5rem; font-size: 2.2rem;'>
-            💪 EVENTO VIP: SAÚDE & BEM-ESTAR
+            💃 2° ENCONTRO: RITMOS + PILATES SOLO
         </h2>
         <div style='color: rgba(255, 255, 255, 0.95); font-size: 1.2rem; line-height: 1.6; padding: 0 1rem;'>
             <div style='margin-bottom: 1rem;'>
-                🏆 <span style='color: #e8919e; font-weight: 700;'>Metodologia AGYTE-SE:</span> Sistema de treino revolucionário para saúde integral
+                🎵 <span style='color: #e8919e; font-weight: 700;'>AULÃO DE RITMOS:</span> Muita música e coreografias divertidas
             </div>
             <div style='margin-bottom: 1rem;'>
-                ❤️ <span style='color: #e8919e; font-weight: 900; text-shadow: 0 0 10px rgba(255, 20, 147, 0.8); padding: 3px 10px; border-radius: 5px;'>SAÚDE EM PRIMEIRO LUGAR:</span> Bem-estar físico e mental
+                🧘 <span style='color: #e8919e; font-weight: 900; text-shadow: 0 0 10px rgba(255, 20, 147, 0.8); padding: 3px 10px; border-radius: 5px;'>PILATES SOLO:</span> Fortalecimento e alongamento
             </div>
             <div>
-                🎫 <span style='color: #e8919e; font-weight: 700;'>50 Convites Exclusivos:</span> Acesso antecipado
+                🎫 <span style='color: #e8919e; font-weight: 700;'>70 Vagas Exclusivas:</span> Garanta sua participação!
             </div>
         </div>
     </div>
@@ -1415,16 +1411,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================
-# MENSAGEM DE DOAÇÃO DE 1KG DE ALIMENTO
+# MENSAGEM DE DOAÇÃO DE ALIMENTO
 # ==============================
 st.markdown("""
 <div class="food-donation">
-    <div class="food-icon">🥫</div>
+    <div class="food-icon">🥛</div>
     <div class="food-title">INSCRIÇÃO SOLIDÁRIA</div>
     <div class="food-description">
-    A inscrição no evento consiste na doação de <strong>1kg de alimento não perecível</strong>.<br>
-    O <strong>RH informará posteriormente</strong> como e quando será feita a entrega.
-</div>
+        Para participar, traga <strong>1 pacote de leite em pó de 200g</strong> no dia do evento.<br>
+        Sua doação vai ajudar famílias que precisam. Vamos juntos fazer a diferença!
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1432,8 +1428,10 @@ st.markdown("""
 # CONTADORES PREMIUM - COM DADOS ATUALIZADOS DO BANCO
 # ==============================
 # CONSULTA ATUAL DO BANCO
-total_banco_atual = contar_participantes()
-proximo_numero_atual = obter_proximo_numero()
+evento_atual = "AULAO_RITMOS"
+total_banco_atual = contar_participantes(evento_atual)
+proximo_numero_atual = obter_proximo_numero(evento_atual)
+vagas_totais = 70
 
 col1, col2, col3 = st.columns(3)
 
@@ -1452,14 +1450,14 @@ with col1:
                     color: #ffffff;
                     text-shadow: 0 0 30px #ff1493;
                     margin-bottom: 0.8rem;'>
-            {total_banco_atual}/50
+            {total_banco_atual}/{vagas_totais}
         </div>
         <div style='color: #ffb6c1; 
                     font-size: 1.2rem; 
                     text-transform: uppercase; 
                     letter-spacing: 3px;
                     font-weight: 700;'>
-            CONVITES VIP
+            VAGAS DISPONÍVEIS
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1474,12 +1472,12 @@ with col2:
                 backdrop-filter: blur(15px);
                 box-shadow: 0 0 50px rgba(218, 112, 214, 0.4);
                 height: 100%;'>
-        <div style='font-size: 3rem; color: #ffffff; margin-bottom: 1rem;'>🏃‍♀️</div>
+        <div style='font-size: 3rem; color: #ffffff; margin-bottom: 1rem;'>📅</div>
         <div style='font-size: 2rem; color: #ffffff; font-weight: 900; margin-bottom: 0.5rem;'>
-            30/01/2026
+            17/03/2025
         </div>
         <div style='color: #da70d6; font-size: 1.5rem; font-weight: 700;'>
-            17:50 HORAS
+            18:30 HORAS
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1496,9 +1494,9 @@ with col3:
                 height: 100%;'>
         <div style='font-size: 3rem; color: #ffffff; margin-bottom: 1rem;'>📍</div>
         <div style='font-size: 1.1rem; color: #ffffff; font-weight: 900; margin-bottom: 0.5rem; line-height: 1.4;'>
-            Rua Conselheiro Galvão, 77<br>
-            Maraponga/Parangaba<br>
-            Fortaleza - CE
+            SESI PARANGABA (QUADRA)<br>
+            Rua João Pessoa, 6754<br>
+            Parangaba - Fortaleza/CE
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1508,9 +1506,9 @@ with col3:
 # ==============================
 st.markdown("""
 <div class="form-container">
-    <h2 class="form-title">💪 GARANTA SUA INSCRIÇÃO!</h2>
+    <h2 class="form-title">💃 GARANTA SUA VAGA!</h2>
     <div style='color: rgba(255, 255, 255, 0.95); text-align: center; margin-bottom: 3rem; font-weight: 600; letter-spacing: 2px; font-size: 1.2rem;'>
-        ACESSO EXCLUSIVO • SAÚDE & BEM-ESTAR
+        2° ENCONTRO • RITMOS + PILATES SOLO
     </div>
 """, unsafe_allow_html=True)
 
@@ -1531,7 +1529,7 @@ with st.form("cadastro_premium"):
         nome = st.text_input(
             "NOME COMPLETO *",
             placeholder="DIGITE SEU NOME",
-            help="Nome para o credenciamento VIP"
+            help="Nome para o credenciamento"
         )
     
     with col2:
@@ -1600,9 +1598,9 @@ with st.form("cadastro_premium"):
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
         '>
-            <div style='font-size: 3rem; margin-bottom: 1rem; animation: iconFloat 2s infinite ease-in-out;'>🎉</div>
+            <div style='font-size: 3rem; margin-bottom: 1rem; animation: iconFloat 2s infinite ease-in-out;'>💃</div>
             <div style='font-size: 2.2rem; font-weight: 900; color: #ffffff; margin-bottom: 1rem; text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);'>
-                ✅ CADASTRO CONFIRMADO!
+                ✅ VAGA CONFIRMADA!
             </div>
             <div style='font-size: 4rem; font-weight: 900; color: #ffffff; margin: 1rem 0; 
                       text-shadow: 0 0 30px rgba(255, 255, 255, 1);
@@ -1610,10 +1608,10 @@ with st.form("cadastro_premium"):
                       -webkit-background-clip: text;
                       -webkit-text-fill-color: transparent;
                       animation: vipPulse 1.5s infinite alternate;'>
-                VIP {st.session_state.numero_vip_sucesso}/50
+                VAGA {st.session_state.numero_vip_sucesso}/{vagas_totais}
             </div>
             <div style='font-size: 1.5rem; color: rgba(255, 255, 255, 0.95); font-weight: 700;'>
-                AGYTE-SE CONFIRMADO COM SUCESSO
+                2° ENCONTRO - RITMOS + PILATES SOLO
             </div>
         </div>
         
@@ -1704,53 +1702,22 @@ with st.form("cadastro_premium"):
     # BOTÃO DE SUBMIT MELHORADO E MAIOR
     # ==============================
     col_btn = st.columns([1])
-with col_btn[0]:
-    submitted = st.form_submit_button(
-        "👉 CLIQUE AQUI PRA FAZER SUA INSCRIÇÃO 👈",
-        use_container_width=False
-    )
+    with col_btn[0]:
+        submitted = st.form_submit_button(
+            "🚨 CLIQUE AQUI PARA GARANTIR SUA VAGA 🚨",
+            use_container_width=True
+        )
 
 st.markdown("""
-<style>
-/* Centraliza o botão */
-div[data-testid="stFormSubmitButton"] {
-    display: flex;
-    justify-content: center;
-}
-
-/* Botão principal */
-div[data-testid="stFormSubmitButton"] > button {
-    background: linear-gradient(135deg, #00c853, #2e7d32);
-    color: white;
-    font-size: 1.1rem;
-    font-weight: 800;
-    padding: 0.9rem 1.6rem;
-    border-radius: 50px;
-    border: none;
-    width: auto;              /* NÃO estica */
-    min-width: 260px;
-    max-width: 420px;
-    box-shadow: 0 0 25px rgba(0, 200, 83, 0.6);
-    animation: pulseBtn 2s infinite;
-    transition: all 0.25s ease-in-out;
-}
-
-/* Hover */
-div[data-testid="stFormSubmitButton"] > button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 40px rgba(0, 255, 120, 0.9);
-    background: linear-gradient(135deg, #00e676, #1b5e20);
-}
-
-/* Animação pulse */
-@keyframes pulseBtn {
-    0% { box-shadow: 0 0 15px rgba(0, 200, 83, 0.5); }
-    50% { box-shadow: 0 0 35px rgba(0, 255, 120, 0.9); }
-    100% { box-shadow: 0 0 15px rgba(0, 200, 83, 0.5); }
-}
-</style>
+<div style="text-align: center; margin: 1.5rem 0; padding: 1.2rem; background: rgba(255, 20, 147, 0.15); border-radius: 15px; border: 3px dashed rgba(255, 105, 180, 0.5); box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);">
+    <div style="color: #ffb6c1; font-size: 1.3rem; font-weight: 900; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px;">
+        ⚡ PREENCHA TODOS OS CAMPOS ACIMA ⚡
+    </div>
+    <div style="color: rgba(255, 255, 255, 0.95); font-size: 1.1rem; font-weight: 700;">
+        E CLIQUE NO BOTÃO ABAIXO PARA FINALIZAR!
+    </div>
+</div>
 """, unsafe_allow_html=True)
-
 
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1763,8 +1730,8 @@ if submitted:
     st.session_state.mostrar_caixa_erro = False
     
     # ATUALIZAR DADOS DO BANCO ANTES DE PROCESSAR
-    total_banco_atual = contar_participantes()
-    proximo_numero_atual = obter_proximo_numero()
+    total_banco_atual = contar_participantes(evento_atual)
+    proximo_numero_atual = obter_proximo_numero(evento_atual)
     
     # Limpar e formatar dados
     nome_limpo = nome.strip().upper() if nome else ""
@@ -1790,14 +1757,14 @@ if submitted:
         st.rerun()
     
     # Verificar limite - USANDO DADOS ATUALIZADOS
-    elif total_banco_atual >= 50:
-        st.session_state.mensagem_erro = "EVENTO ESGOTADO! Todas as 50 vagas já foram preenchidas."
+    elif total_banco_atual >= vagas_totais:
+        st.session_state.mensagem_erro = f"EVENTO ESGOTADO! Todas as {vagas_totais} vagas já foram preenchidas."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
     # Verificar CPF duplicado - CONSULTA ATUALIZADA
-    elif verificar_cpf_existente(cpf_limpo):
-        st.session_state.mensagem_erro = "Este CPF já está cadastrado!"
+    elif verificar_cpf_existente(cpf_limpo, evento_atual):
+        st.session_state.mensagem_erro = "Este CPF já está cadastrado para este evento!"
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
@@ -1812,8 +1779,8 @@ if submitted:
             setor=setor_formatado,
             unidade=unidade_formatada,
             telefone=telefone_limpo,
-            numero_vip=proximo_numero_atual,  # USA NÚMERO ATUALIZADO
-            evento="FUNCIONAL"
+            numero_vip=proximo_numero_atual,
+            evento=evento_atual
         )
         
         if success:
@@ -1837,8 +1804,8 @@ if submitted:
 # CONTADOR DE VAGAS - SEMPRE ATUALIZADO
 # ==============================
 # CONSULTA FINAL DO BANCO
-total_final = contar_participantes()
-vagas_restantes = 50 - total_final if total_final < 50 else 0
+total_final = contar_participantes(evento_atual)
+vagas_restantes = vagas_totais - total_final if total_final < vagas_totais else 0
 
 st.markdown(f"""
 <div class="counter-container" style='text-align: center; padding: 1.5rem; 
@@ -1852,7 +1819,7 @@ st.markdown(f"""
                 -webkit-text-fill-color: transparent;
                 margin-bottom: 0.5rem;
                 text-shadow: 0 0 40px rgba(255, 20, 147, 0.6);'>
-        {total_final}/50
+        {total_final}/{vagas_totais}
     </div>
     <div style='color: #ffffff; 
                 font-weight: 800; 
@@ -1860,11 +1827,11 @@ st.markdown(f"""
                 text-transform: uppercase;
                 font-size: 1.2rem;
                 margin-bottom: 0.8rem;'>
-        CONVITES CONFIRMADOS
+        VAGAS CONFIRMADAS
     </div>
 """, unsafe_allow_html=True)
 
-if total_final >= 50:
+if total_final >= vagas_totais:
     st.markdown(f"""
     <div style='color: #ff1493; 
                 font-size: 1.1rem; 
@@ -1875,7 +1842,7 @@ if total_final >= 50:
                 display: inline-block;
                 box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);
                 animation: pulse 2s infinite;'>
-        🚫 EVENTO ESGOTADO • {total_final}/50
+        🚫 EVENTO ESGOTADO • {total_final}/{vagas_totais}
     </div>
     """, unsafe_allow_html=True)
 else:
@@ -1888,7 +1855,7 @@ else:
                 border-radius: 12px;
                 display: inline-block;
                 box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);'>
-        {vagas_restantes} VAGAS VIP RESTANTES
+        {vagas_restantes} VAGAS RESTANTES
     </div>
     """, unsafe_allow_html=True)
 
@@ -1913,16 +1880,15 @@ st.markdown("""
         AGYTE-SE
     </div>
     <div style="color: rgba(255, 255, 255, 0.95); margin-bottom: 0.8rem; font-size: 1.4rem; font-weight: 700;">
-        TREINO FUNCIONAL PREMIUM • SAÚDE & BEM-ESTAR
+        2° ENCONTRO: AULÃO RITMOS + PILATES SOLO
     </div>
     <div style="color: rgba(255, 255, 255, 0.85); font-size: 1rem; letter-spacing: 2px; margin-bottom: 0.5rem;">
-        📍 Rua Conselheiro Galvão, 77 - Maraponga/Parangaba - Fortaleza/CE
+        📍 SESI PARANGABA - Rua João Pessoa, 6754 - Parangaba - Fortaleza/CE
     </div>
     <div style="color: rgba(255, 255, 255, 0.75); font-size: 0.9rem; letter-spacing: 1px;">
-        30 DE JANEIRO 2026 • 17:50H • CONVITES LIMITADOS
+        17 DE MARÇO 2025 • 18:30H • 70 VAGAS LIMITADAS
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
-
