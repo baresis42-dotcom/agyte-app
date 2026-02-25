@@ -1418,8 +1418,9 @@ st.markdown("""
     <div class="food-icon">🥛</div>
     <div class="food-title">INSCRIÇÃO SOLIDÁRIA</div>
     <div class="food-description">
-        Para participar, traga <strong>1 pacote de leite em pó de 200g</strong>
-        Sua doação vai ajudar famílias que precisam. Vamos juntos fazer a diferença!
+        Para participar, traga <strong>1 pacote de leite em pó de 200g</strong><br>
+        Sua doação vai ajudar famílias que precisam. Vamos juntos fazer a diferença!<br><br>
+        <em>O RH informará posteriormente como e quando será feita a entrega.</em>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1892,4 +1893,5 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
+
 
