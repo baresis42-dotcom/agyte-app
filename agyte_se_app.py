@@ -38,7 +38,7 @@ def get_connection():
         return None
 
 
-def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento="AULAO_RITMOS"):
+def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento="FUTEBOL_QUADRA"):
     """Insere participante na tabela public.agyte_participantes"""
     try:
         conn = get_connection()
@@ -79,7 +79,7 @@ def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento
             conn.close()
         return False, str(e)
 
-def contar_participantes(evento="AULAO_RITMOS"):
+def contar_participantes(evento="FUTEBOL_QUADRA"):
     """Conta o total de participantes no banco - SEMPRE CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
@@ -98,7 +98,7 @@ def contar_participantes(evento="AULAO_RITMOS"):
         print(f"Erro ao contar participantes: {e}")
         return 0
 
-def verificar_cpf_existente(cpf, evento="AULAO_RITMOS"):
+def verificar_cpf_existente(cpf, evento="FUTEBOL_QUADRA"):
     """Verifica se CPF já está cadastrado no banco - CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
@@ -124,7 +124,7 @@ def verificar_cpf_existente(cpf, evento="AULAO_RITMOS"):
         print(f"Erro ao verificar CPF: {e}")
         return False
 
-def obter_proximo_numero(evento="AULAO_RITMOS"):
+def obter_proximo_numero(evento="FUTEBOL_QUADRA"):
     """Obtém o próximo número VIP baseado no banco - CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
@@ -151,8 +151,8 @@ def obter_proximo_numero(evento="AULAO_RITMOS"):
 # CONFIGURAÇÃO DO APP
 # ==============================
 st.set_page_config(
-    page_title="AGYTE-SE | 2° ENCONTRO - AULÃO RITMOS + PILATES",
-    page_icon="💃",
+    page_title="AGYTE-SE | FUTEBOL NA QUADRA",
+    page_icon="⚽",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -1373,10 +1373,10 @@ st.markdown("""
         <div class="juntos">JUNTOS EM MOVIMENTO</div>
     </div>
     <div class="event-badge">
-        💃 EVENTO EXCLUSIVO PARA COLABORADORES 🧘‍♀️
+        ⚽ EVENTO EXCLUSIVO PARA COLABORADORES ⚽
     </div>
     <div style="margin-top: 2rem; color: rgba(255, 255, 255, 0.95); font-size: 1.3rem; font-weight: 600; max-width: 700px; margin-left: auto; margin-right: auto; padding: 0 1rem; text-align: center;">
-        <strong>2° ENCONTRO: AULÃO RITMOS + PILATES SOLO</strong>
+        <strong>FUTEBOL NA QUADRA</strong>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1393,17 +1393,17 @@ st.markdown("""
                 backdrop-filter: blur(15px);
                 box-shadow: 0 0 60px rgba(255, 20, 147, 0.3);'>
         <h2 style='color: #ffffff; margin-bottom: 1.5rem; font-size: 2.2rem;'>
-            💃 2° ENCONTRO: RITMOS + PILATES SOLO
+            ⚽ FUTEBOL NA QUADRA
         </h2>
         <div style='color: rgba(255, 255, 255, 0.95); font-size: 1.2rem; line-height: 1.6; padding: 0 1rem;'>
             <div style='margin-bottom: 1rem;'>
-                🎵 <span style='color: #e8919e; font-weight: 700;'>AULÃO DE RITMOS:</span> Muita música e coreografias divertidas
+                ⚽ <span style='color: #e8919e; font-weight: 700;'>PARTIDA DE FUTEBOL:</span> Venha jogar e se divertir!
             </div>
             <div style='margin-bottom: 1rem;'>
-                🧘 <span style='color: #e8919e; font-weight: 900; text-shadow: 0 0 10px rgba(255, 20, 147, 0.8); padding: 3px 10px; border-radius: 5px;'>PILATES SOLO:</span> Fortalecimento e alongamento
+                👟 <span style='color: #e8919e; font-weight: 700;'>Traje esportivo:</span> Venha com roupa adequada para o futebol
             </div>
             <div>
-                🎫 <span style='color: #e8919e; font-weight: 700;'>70 Vagas Exclusivas:</span> Garanta sua participação!
+                🎫 <span style='color: #e8919e; font-weight: 700;'>25 Vagas Exclusivas:</span> Garanta sua participação!
             </div>
         </div>
     </div>
@@ -1429,10 +1429,10 @@ st.markdown("""
 # CONTADORES PREMIUM - COM DADOS ATUALIZADOS DO BANCO
 # ==============================
 # CONSULTA ATUAL DO BANCO
-evento_atual = "AULAO_RITMOS"
+evento_atual = "FUTEBOL_QUADRA"
 total_banco_atual = contar_participantes(evento_atual)
 proximo_numero_atual = obter_proximo_numero(evento_atual)
-vagas_totais = 70
+vagas_totais = 25
 
 col1, col2, col3 = st.columns(3)
 
@@ -1507,9 +1507,9 @@ with col3:
 # ==============================
 st.markdown("""
 <div class="form-container">
-    <h2 class="form-title">💃 GARANTA SUA VAGA!</h2>
+    <h2 class="form-title">⚽ GARANTA SUA VAGA!</h2>
     <div style='color: rgba(255, 255, 255, 0.95); text-align: center; margin-bottom: 3rem; font-weight: 600; letter-spacing: 2px; font-size: 1.2rem;'>
-        2° ENCONTRO • RITMOS + PILATES SOLO
+        FUTEBOL NA QUADRA
     </div>
 """, unsafe_allow_html=True)
 
@@ -1599,7 +1599,7 @@ with st.form("cadastro_premium"):
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
         '>
-            <div style='font-size: 3rem; margin-bottom: 1rem; animation: iconFloat 2s infinite ease-in-out;'>💃</div>
+            <div style='font-size: 3rem; margin-bottom: 1rem; animation: iconFloat 2s infinite ease-in-out;'>⚽</div>
             <div style='font-size: 2.2rem; font-weight: 900; color: #ffffff; margin-bottom: 1rem; text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);'>
                 ✅ VAGA CONFIRMADA!
             </div>
@@ -1612,7 +1612,7 @@ with st.form("cadastro_premium"):
                 VAGA {st.session_state.numero_vip_sucesso}/{vagas_totais}
             </div>
             <div style='font-size: 1.5rem; color: rgba(255, 255, 255, 0.95); font-weight: 700;'>
-                2° ENCONTRO - RITMOS + PILATES SOLO
+                FUTEBOL NA QUADRA
             </div>
         </div>
         
@@ -1881,17 +1881,15 @@ st.markdown("""
         AGYTE-SE
     </div>
     <div style="color: rgba(255, 255, 255, 0.95); margin-bottom: 0.8rem; font-size: 1.4rem; font-weight: 700;">
-        2° ENCONTRO: AULÃO RITMOS + PILATES SOLO
+        FUTEBOL NA QUADRA
     </div>
     <div style="color: rgba(255, 255, 255, 0.85); font-size: 1rem; letter-spacing: 2px; margin-bottom: 0.5rem;">
         📍 SESI PARANGABA - Rua João Pessoa, 6754 - Parangaba - Fortaleza/CE
     </div>
     <div style="color: rgba(255, 255, 255, 0.75); font-size: 0.9rem; letter-spacing: 1px;">
-        17 DE MARÇO 2025 • 18:30H • 70 VAGAS LIMITADAS
+        17 DE MARÇO 2025 • 18:30H • 25 VAGAS LIMITADAS
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
-
-
