@@ -37,20 +37,20 @@ def get_connection():
     except:
         return None
 
-
-def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento="FUTEBOL_QUADRA"):
-    """Insere participante na tabela public.agyte_participantes"""
+def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip,
+                         modalidade, tamanho_blusa, evento="CORRIDA_SESI_2026"):
+    """Insere participante na tabela public.agyte_participantes com modalidade e tamanho de blusa"""
     try:
         conn = get_connection()
         if conn is None:
             return True, "⚠️ Participante não salvo (banco inacessível), mas dados foram preenchidos."
-            
+
         cur = conn.cursor()
 
         sql = """
             INSERT INTO public.agyte_participantes
-                (nome, cpf, setor, unidade, telefone, numero_vip, evento)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                (nome, cpf, setor, unidade, telefone, numero_vip, evento, modalidade, tamanho_blusa)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         cur.execute(sql, (
@@ -60,14 +60,16 @@ def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento
             unidade,
             telefone,
             numero_vip,
-            evento
+            evento,
+            modalidade,
+            tamanho_blusa
         ))
 
         conn.commit()
         cur.close()
         conn.close()
         return True, "Participante cadastrado com sucesso!"
-        
+
     except psycopg2.IntegrityError as e:
         if conn:
             conn.rollback()
@@ -79,18 +81,18 @@ def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento
             conn.close()
         return False, str(e)
 
-def contar_participantes(evento="FUTEBOL_QUADRA"):
+def contar_participantes(evento="CORRIDA_SESI_2026"):
     """Conta o total de participantes no banco - SEMPRE CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
         if conn is None:
             return 0
-            
+
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) as total FROM public.agyte_participantes WHERE evento = %s", (evento,))
         resultado = cur.fetchone()
         total = resultado[0] if resultado else 0
-        
+
         cur.close()
         conn.close()
         return total
@@ -98,25 +100,25 @@ def contar_participantes(evento="FUTEBOL_QUADRA"):
         print(f"Erro ao contar participantes: {e}")
         return 0
 
-def verificar_cpf_existente(cpf, evento="FUTEBOL_QUADRA"):
+def verificar_cpf_existente(cpf, evento="CORRIDA_SESI_2026"):
     """Verifica se CPF já está cadastrado no banco - CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
         if conn is None:
             return False
-            
+
         cur = conn.cursor()
         cpf_limpo = ''.join(filter(str.isdigit, cpf))
-        
+
         cur.execute("""
             SELECT COUNT(*) FROM public.agyte_participantes 
             WHERE evento = %s 
             AND REPLACE(REPLACE(cpf, '.', ''), '-', '') = %s
         """, (evento, cpf_limpo))
-        
+
         resultado = cur.fetchone()
         existe = resultado[0] > 0 if resultado else False
-        
+
         cur.close()
         conn.close()
         return existe
@@ -124,13 +126,13 @@ def verificar_cpf_existente(cpf, evento="FUTEBOL_QUADRA"):
         print(f"Erro ao verificar CPF: {e}")
         return False
 
-def obter_proximo_numero(evento="FUTEBOL_QUADRA"):
+def obter_proximo_numero(evento="CORRIDA_SESI_2026"):
     """Obtém o próximo número VIP baseado no banco - CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
         if conn is None:
             return 1
-            
+
         cur = conn.cursor()
         cur.execute("""
             SELECT COALESCE(MAX(numero_vip), 0) as ultimo_numero 
@@ -139,7 +141,7 @@ def obter_proximo_numero(evento="FUTEBOL_QUADRA"):
         """, (evento,))
         resultado = cur.fetchone()
         ultimo_numero = resultado[0] if resultado else 0
-        
+
         cur.close()
         conn.close()
         return ultimo_numero + 1
@@ -151,8 +153,8 @@ def obter_proximo_numero(evento="FUTEBOL_QUADRA"):
 # CONFIGURAÇÃO DO APP
 # ==============================
 st.set_page_config(
-    page_title="AGYTE-SE | FUTEBOL NA QUADRA",
-    page_icon="⚽",
+    page_title="AGYTE-SE | 2ª CORRIDA SESI",
+    page_icon="🏃",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -1149,8 +1151,8 @@ st.markdown("""
         margin-top: 2rem !important;
     }
     
-    /* MENSAGEM DE DOAÇÃO DE ALIMENTOS */
-    .food-donation {
+    /* MENSAGEM DA TAXA DE INSCRIÇÃO */
+    .fee-box {
         background: linear-gradient(135deg, 
             rgba(255, 215, 0, 0.2) 0%, 
             rgba(255, 165, 0, 0.2) 100%);
@@ -1163,12 +1165,12 @@ st.markdown("""
         box-shadow: 
             0 0 50px rgba(255, 215, 0, 0.4),
             0 15px 40px rgba(0, 0, 0, 0.3);
-        animation: donationGlow 3s infinite alternate;
+        animation: feeGlow 3s infinite alternate;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
     }
     
-    @keyframes donationGlow {
+    @keyframes feeGlow {
         0% { 
             box-shadow: 0 0 50px rgba(255, 215, 0, 0.4),
                        0 15px 40px rgba(0, 0, 0, 0.3);
@@ -1179,13 +1181,13 @@ st.markdown("""
         }
     }
     
-    .food-icon {
+    .fee-icon {
         font-size: 3rem;
         margin-bottom: 0.8rem;
         display: block;
     }
     
-    .food-title {
+    .fee-title {
         color: #FFD700;
         font-size: 1.8rem;
         font-weight: 900;
@@ -1195,7 +1197,7 @@ st.markdown("""
         text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
     }
     
-    .food-description {
+    .fee-description {
         color: rgba(255, 255, 255, 0.95);
         font-size: 1.1rem;
         font-weight: 600;
@@ -1373,10 +1375,10 @@ st.markdown("""
         <div class="juntos">JUNTOS EM MOVIMENTO</div>
     </div>
     <div class="event-badge">
-        ⚽ EVENTO EXCLUSIVO PARA COLABORADORES ⚽
+        🏃 EVENTO EXCLUSIVO PARA COLABORADORES 🏃
     </div>
     <div style="margin-top: 2rem; color: rgba(255, 255, 255, 0.95); font-size: 1.3rem; font-weight: 600; max-width: 700px; margin-left: auto; margin-right: auto; padding: 0 1rem; text-align: center;">
-        <strong>FUTEBOL NA QUADRA</strong>
+        <strong>2º CORRIDA NACIONAL SESI</strong>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1393,17 +1395,23 @@ st.markdown("""
                 backdrop-filter: blur(15px);
                 box-shadow: 0 0 60px rgba(255, 20, 147, 0.3);'>
         <h2 style='color: #ffffff; margin-bottom: 1.5rem; font-size: 2.2rem;'>
-            ⚽ FUTEBOL NA QUADRA
+            🏃 2ª CORRIDA NACIONAL SESI
         </h2>
         <div style='color: rgba(255, 255, 255, 0.95); font-size: 1.2rem; line-height: 1.6; padding: 0 1rem;'>
             <div style='margin-bottom: 1rem;'>
-                ⚽ <span style='color: #e8919e; font-weight: 700;'>PARTIDA DE FUTEBOL:</span> Venha jogar e se divertir!
+                📅 <span style='color: #e8919e; font-weight: 700;'>DATA:</span> 01 de maio de 2026
             </div>
             <div style='margin-bottom: 1rem;'>
-                👟 <span style='color: #e8919e; font-weight: 700;'>Traje esportivo:</span> Venha com roupa adequada para o futebol
+                ⏰ <span style='color: #e8919e; font-weight: 700;'>LARGADA:</span> 05:45h (horário de concentração)
+            </div>
+            <div style='margin-bottom: 1rem;'>
+                📍 <span style='color: #e8919e; font-weight: 700;'>LOCAL:</span> Av. Beira Mar (em frente ao Náutico)
+            </div>
+            <div style='margin-bottom: 1rem;'>
+                💰 <span style='color: #e8919e; font-weight: 700;'>INSCRIÇÃO:</span> R$ 25,00 (descontado em folha)
             </div>
             <div>
-                🎫 <span style='color: #e8919e; font-weight: 700;'>25 Vagas Exclusivas:</span> Garanta sua participação!
+                👕 <span style='color: #e8919e; font-weight: 700;'>KIT ATLETA:</span> Blusa de corrida (informe o tamanho no cadastro)
             </div>
         </div>
     </div>
@@ -1411,16 +1419,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================
-# MENSAGEM DE DOAÇÃO DE ALIMENTO
+# MENSAGEM DA TAXA DE INSCRIÇÃO
 # ==============================
 st.markdown("""
-<div class="food-donation">
-    <div class="food-icon">🥛</div>
-    <div class="food-title">INSCRIÇÃO SOLIDÁRIA</div>
-    <div class="food-description">
-        Para participar, traga <strong>1 pacote de leite em pó de 200g</strong><br>
-        Sua doação vai ajudar famílias que precisam. Vamos juntos fazer a diferença!<br><br>
-        <em>O RH informará posteriormente como e quando será feita a entrega.</em>
+<div class="fee-box">
+    <div class="fee-icon">💰</div>
+    <div class="fee-title">TAXA DE INSCRIÇÃO</div>
+    <div class="fee-description">
+        <strong>R$ 25,00</strong> – valor será descontado em folha.<br>
+        Sua participação ajuda a promover saúde e bem‑estar!
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -1428,11 +1435,10 @@ st.markdown("""
 # ==============================
 # CONTADORES PREMIUM - COM DADOS ATUALIZADOS DO BANCO
 # ==============================
-# CONSULTA ATUAL DO BANCO
-evento_atual = "FUTEBOL_QUADRA"
+evento_atual = "CORRIDA_SESI_2026"
 total_banco_atual = contar_participantes(evento_atual)
 proximo_numero_atual = obter_proximo_numero(evento_atual)
-vagas_totais = 25
+vagas_totais = 50   # Ajuste conforme a capacidade real
 
 col1, col2, col3 = st.columns(3)
 
@@ -1458,7 +1464,7 @@ with col1:
                     text-transform: uppercase; 
                     letter-spacing: 3px;
                     font-weight: 700;'>
-            VAGAS DISPONÍVEIS
+            INSCRITOS
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1475,10 +1481,10 @@ with col2:
                 height: 100%;'>
         <div style='font-size: 3rem; color: #ffffff; margin-bottom: 1rem;'>📅</div>
         <div style='font-size: 2rem; color: #ffffff; font-weight: 900; margin-bottom: 0.5rem;'>
-            17/03/2025
+            01/05/2026
         </div>
         <div style='color: #da70d6; font-size: 1.5rem; font-weight: 700;'>
-            18:30 HORAS
+            05:45 HORAS
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1495,9 +1501,9 @@ with col3:
                 height: 100%;'>
         <div style='font-size: 3rem; color: #ffffff; margin-bottom: 1rem;'>📍</div>
         <div style='font-size: 1.1rem; color: #ffffff; font-weight: 900; margin-bottom: 0.5rem; line-height: 1.4;'>
-            SESI PARANGABA (QUADRA)<br>
-            Rua João Pessoa, 6754<br>
-            Parangaba - Fortaleza/CE
+            AV. BEIRA MAR<br>
+            Em frente ao Náutico<br>
+            Fortaleza/CE
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1507,9 +1513,9 @@ with col3:
 # ==============================
 st.markdown("""
 <div class="form-container">
-    <h2 class="form-title">⚽ GARANTA SUA VAGA!</h2>
+    <h2 class="form-title">🏃 GARANTA SUA INSCRIÇÃO!</h2>
     <div style='color: rgba(255, 255, 255, 0.95); text-align: center; margin-bottom: 3rem; font-weight: 600; letter-spacing: 2px; font-size: 1.2rem;'>
-        FUTEBOL NA QUADRA
+        2ª CORRIDA NACIONAL SESI
     </div>
 """, unsafe_allow_html=True)
 
@@ -1523,16 +1529,16 @@ if 'mostrar_caixa_erro' not in st.session_state:
 if 'mensagem_erro' not in st.session_state:
     st.session_state.mensagem_erro = ""
 
-with st.form("cadastro_premium"):
+with st.form("cadastro_corrida"):
     col1, col2 = st.columns(2)
-    
+
     with col1:
         nome = st.text_input(
             "NOME COMPLETO *",
             placeholder="DIGITE SEU NOME",
             help="Nome para o credenciamento"
         )
-    
+
     with col2:
         cpf_input = st.text_input(
             "CPF *",
@@ -1540,7 +1546,7 @@ with st.form("cadastro_premium"):
             help="Digite 11 números (somente números)",
             max_chars=14
         )
-    
+
     setor = st.selectbox(
         "SETOR DE ATUAÇÃO *",
         [
@@ -1562,23 +1568,36 @@ with st.form("cadastro_premium"):
             "🔍 OUTROS"
         ]
     )
-    
+
     unidade = st.selectbox(
         "UNIDADE *",
         ["🏢 DILADY", "💖 FINNA", "❤️ LOVE"]
     )
-    
+
+    # NOVOS CAMPOS OBRIGATÓRIOS
+    modalidade = st.selectbox(
+        "MODALIDADE *",
+        ["CAMINHADA", "3KM", "5KM", "10KM"],
+        help="Escolha a distância que deseja percorrer"
+    )
+
+    tamanho_blusa = st.selectbox(
+        "TAMANHO DA BLUSA *",
+        ["P", "M", "G", "GG"],
+        help="Selecione o tamanho da camiseta do kit atleta"
+    )
+
     telefone_input = st.text_input(
         "WHATSAPP *",
         placeholder="(85) 99999-9999",
         help="Digite números com DDD (somente números)",
         max_chars=15
     )
-    
+
     # ==============================
     # CAIXAS DE MENSAGEM ACIMA DO BOTÃO
     # ==============================
-    
+
     # Mostrar caixa de sucesso se ativa
     if st.session_state.mostrar_caixa_sucesso:
         st.markdown(f"""
@@ -1599,9 +1618,9 @@ with st.form("cadastro_premium"):
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
         '>
-            <div style='font-size: 3rem; margin-bottom: 1rem; animation: iconFloat 2s infinite ease-in-out;'>⚽</div>
+            <div style='font-size: 3rem; margin-bottom: 1rem; animation: iconFloat 2s infinite ease-in-out;'>🏃</div>
             <div style='font-size: 2.2rem; font-weight: 900; color: #ffffff; margin-bottom: 1rem; text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);'>
-                ✅ VAGA CONFIRMADA!
+                ✅ INSCRIÇÃO CONFIRMADA!
             </div>
             <div style='font-size: 4rem; font-weight: 900; color: #ffffff; margin: 1rem 0; 
                       text-shadow: 0 0 30px rgba(255, 255, 255, 1);
@@ -1609,13 +1628,13 @@ with st.form("cadastro_premium"):
                       -webkit-background-clip: text;
                       -webkit-text-fill-color: transparent;
                       animation: vipPulse 1.5s infinite alternate;'>
-                VAGA {st.session_state.numero_vip_sucesso}/{vagas_totais}
+                #{st.session_state.numero_vip_sucesso}
             </div>
             <div style='font-size: 1.5rem; color: rgba(255, 255, 255, 0.95); font-weight: 700;'>
-                FUTEBOL NA QUADRA
+                2ª CORRIDA NACIONAL SESI
             </div>
         </div>
-        
+
         <style>
         @keyframes blink {{
             0%, 100% {{ 
@@ -1627,18 +1646,18 @@ with st.form("cadastro_premium"):
                 box-shadow: 0 0 80px rgba(76, 175, 80, 1);
             }}
         }}
-        
+
         @keyframes vipPulse {{
             0% {{ transform: scale(1); }}
             100% {{ transform: scale(1.05); }}
         }}
-        
+
         @keyframes iconFloat {{
             0%, 100% {{ transform: translateY(0) rotate(0deg); }}
             50% {{ transform: translateY(-10px) rotate(5deg); }}
         }}
         </style>
-        
+
         <script>
         // Remove a caixa após 5 segundos
         setTimeout(() => {{
@@ -1647,7 +1666,7 @@ with st.form("cadastro_premium"):
         }}, 5000);
         </script>
         """, unsafe_allow_html=True)
-    
+
     # Mostrar caixa de erro se ativa
     if st.session_state.mostrar_caixa_erro:
         st.markdown(f"""
@@ -1676,7 +1695,7 @@ with st.form("cadastro_premium"):
                 {st.session_state.mensagem_erro}
             </div>
         </div>
-        
+
         <style>
         @keyframes blinkRed {{
             0%, 100% {{ 
@@ -1689,7 +1708,7 @@ with st.form("cadastro_premium"):
             }}
         }}
         </style>
-        
+
         <script>
         // Remove a caixa após 4 segundos
         setTimeout(() => {{
@@ -1698,7 +1717,7 @@ with st.form("cadastro_premium"):
         }}, 4000);
         </script>
         """, unsafe_allow_html=True)
-    
+
     # ==============================
     # BOTÃO DE SUBMIT MELHORADO E MAIOR
     # ==============================
@@ -1729,51 +1748,51 @@ if submitted:
     # Limpar caixas anteriores
     st.session_state.mostrar_caixa_sucesso = False
     st.session_state.mostrar_caixa_erro = False
-    
+
     # ATUALIZAR DADOS DO BANCO ANTES DE PROCESSAR
     total_banco_atual = contar_participantes(evento_atual)
     proximo_numero_atual = obter_proximo_numero(evento_atual)
-    
+
     # Limpar e formatar dados
     nome_limpo = nome.strip().upper() if nome else ""
     cpf_limpo = formatar_cpf(cpf_input)
     telefone_limpo = formatar_telefone(telefone_input)
-    
+
     # Validar campos vazios
     if not nome_limpo or not cpf_limpo or not telefone_limpo:
         st.session_state.mensagem_erro = "Preencha todos os campos!"
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
-    
+
     # Validar CPF
     elif len(cpf_limpo) != 11:
         st.session_state.mensagem_erro = f"CPF deve ter 11 números! Você digitou {len(cpf_limpo)}."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
-    
+
     # Validar telefone
     elif len(telefone_limpo) < 10:
         st.session_state.mensagem_erro = f"Telefone deve ter pelo menos 10 números! Você digitou {len(telefone_limpo)}."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
-    
+
     # Verificar limite - USANDO DADOS ATUALIZADOS
     elif total_banco_atual >= vagas_totais:
         st.session_state.mensagem_erro = f"EVENTO ESGOTADO! Todas as {vagas_totais} vagas já foram preenchidas."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
-    
+
     # Verificar CPF duplicado - CONSULTA ATUALIZADA
     elif verificar_cpf_existente(cpf_limpo, evento_atual):
         st.session_state.mensagem_erro = "Este CPF já está cadastrado para este evento!"
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
-    
+
     # Tentar cadastrar
     else:
         setor_formatado = setor.split("-")[0].strip() if "-" in setor else setor.split(" ")[0]
         unidade_formatada = unidade.replace("🏢", "").replace("💖", "").replace("❤️", "").strip()
-        
+
         success, message = inserir_participante(
             nome=nome_limpo,
             cpf=cpf_limpo,
@@ -1781,13 +1800,15 @@ if submitted:
             unidade=unidade_formatada,
             telefone=telefone_limpo,
             numero_vip=proximo_numero_atual,
+            modalidade=modalidade,
+            tamanho_blusa=tamanho_blusa,
             evento=evento_atual
         )
-        
+
         if success:
             st.session_state.numero_vip_sucesso = proximo_numero_atual
             st.session_state.mostrar_caixa_sucesso = True
-            
+
             # Efeito visual de vibração
             html("""
             <script>
@@ -1798,7 +1819,7 @@ if submitted:
         else:
             st.session_state.mensagem_erro = f"Erro: {message}"
             st.session_state.mostrar_caixa_erro = True
-    
+
     st.rerun()
 
 # ==============================
@@ -1828,7 +1849,7 @@ st.markdown(f"""
                 text-transform: uppercase;
                 font-size: 1.2rem;
                 margin-bottom: 0.8rem;'>
-        VAGAS CONFIRMADAS
+        INSCRITOS
     </div>
 """, unsafe_allow_html=True)
 
@@ -1862,8 +1883,6 @@ else:
 
 st.markdown("</div>", unsafe_allow_html=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
-
 # ==============================
 # RODAPÉ
 # ==============================
@@ -1881,13 +1900,13 @@ st.markdown("""
         AGYTE-SE
     </div>
     <div style="color: rgba(255, 255, 255, 0.95); margin-bottom: 0.8rem; font-size: 1.4rem; font-weight: 700;">
-        FUTEBOL NA QUADRA
+        2ª CORRIDA NACIONAL SESI
     </div>
     <div style="color: rgba(255, 255, 255, 0.85); font-size: 1rem; letter-spacing: 2px; margin-bottom: 0.5rem;">
-        📍 SESI PARANGABA - Rua João Pessoa, 6754 - Parangaba - Fortaleza/CE
+        📍 AV. BEIRA MAR (em frente ao Náutico) - Fortaleza/CE
     </div>
     <div style="color: rgba(255, 255, 255, 0.75); font-size: 0.9rem; letter-spacing: 1px;">
-        17 DE MARÇO 2025 • 18:30H • 25 VAGAS LIMITADAS
+        01 DE MAIO 2026 • LARGADA 05:45H • INSCRIÇÃO R$ 25,00
     </div>
 </div>
 """, unsafe_allow_html=True)
