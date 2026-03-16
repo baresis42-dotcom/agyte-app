@@ -1577,7 +1577,7 @@ with st.form("cadastro_corrida"):
     # NOVOS CAMPOS OBRIGATÓRIOS
     modalidade = st.selectbox(
         "MODALIDADE *",
-        ["CAMINHADA", "3KM", "5KM", "10KM"],
+        ["3KM", "5KM", "10KM"],
         help="Escolha a distância que deseja percorrer"
     )
 
