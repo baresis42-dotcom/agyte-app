@@ -6,6 +6,7 @@ from streamlit.components.v1 import html
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
+import base64
 
 # ==============================
 # FUNÇÕES DE FORMATAÇÃO E VALIDAÇÃO
@@ -37,20 +38,19 @@ def get_connection():
     except:
         return None
 
-def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip,
-                         modalidade, tamanho_blusa, evento="CORRIDA_SESI_2026"):
-    """Insere participante na tabela public.agyte_participantes com modalidade e tamanho de blusa"""
+def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento="FUNCIONAL"):
+    """Insere participante na tabela public.agyte_participantes"""
     try:
         conn = get_connection()
         if conn is None:
             return True, "⚠️ Participante não salvo (banco inacessível), mas dados foram preenchidos."
-
+            
         cur = conn.cursor()
 
         sql = """
             INSERT INTO public.agyte_participantes
-                (nome, cpf, setor, unidade, telefone, numero_vip, evento, modalidade, tamanho_blusa)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (nome, cpf, setor, unidade, telefone, numero_vip, evento)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
 
         cur.execute(sql, (
@@ -60,16 +60,14 @@ def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip,
             unidade,
             telefone,
             numero_vip,
-            evento,
-            modalidade,
-            tamanho_blusa
+            evento
         ))
 
         conn.commit()
         cur.close()
         conn.close()
         return True, "Participante cadastrado com sucesso!"
-
+        
     except psycopg2.IntegrityError as e:
         if conn:
             conn.rollback()
@@ -81,18 +79,18 @@ def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip,
             conn.close()
         return False, str(e)
 
-def contar_participantes(evento="CORRIDA_SESI_2026"):
+def contar_participantes():
     """Conta o total de participantes no banco - SEMPRE CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
         if conn is None:
             return 0
-
+            
         cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) as total FROM public.agyte_participantes WHERE evento = %s", (evento,))
+        cur.execute("SELECT COUNT(*) as total FROM public.agyte_participantes WHERE evento = 'FUNCIONAL'")
         resultado = cur.fetchone()
         total = resultado[0] if resultado else 0
-
+        
         cur.close()
         conn.close()
         return total
@@ -100,25 +98,25 @@ def contar_participantes(evento="CORRIDA_SESI_2026"):
         print(f"Erro ao contar participantes: {e}")
         return 0
 
-def verificar_cpf_existente(cpf, evento="CORRIDA_SESI_2026"):
+def verificar_cpf_existente(cpf):
     """Verifica se CPF já está cadastrado no banco - CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
         if conn is None:
             return False
-
+            
         cur = conn.cursor()
         cpf_limpo = ''.join(filter(str.isdigit, cpf))
-
+        
         cur.execute("""
             SELECT COUNT(*) FROM public.agyte_participantes 
-            WHERE evento = %s 
+            WHERE evento = 'FUNCIONAL' 
             AND REPLACE(REPLACE(cpf, '.', ''), '-', '') = %s
-        """, (evento, cpf_limpo))
-
+        """, (cpf_limpo,))
+        
         resultado = cur.fetchone()
         existe = resultado[0] > 0 if resultado else False
-
+        
         cur.close()
         conn.close()
         return existe
@@ -126,22 +124,22 @@ def verificar_cpf_existente(cpf, evento="CORRIDA_SESI_2026"):
         print(f"Erro ao verificar CPF: {e}")
         return False
 
-def obter_proximo_numero(evento="CORRIDA_SESI_2026"):
+def obter_proximo_numero():
     """Obtém o próximo número VIP baseado no banco - CONSULTA ATUALIZADA"""
     try:
         conn = get_connection()
         if conn is None:
             return 1
-
+            
         cur = conn.cursor()
         cur.execute("""
             SELECT COALESCE(MAX(numero_vip), 0) as ultimo_numero 
             FROM public.agyte_participantes 
-            WHERE evento = %s
-        """, (evento,))
+            WHERE evento = 'FUNCIONAL'
+        """)
         resultado = cur.fetchone()
         ultimo_numero = resultado[0] if resultado else 0
-
+        
         cur.close()
         conn.close()
         return ultimo_numero + 1
@@ -153,26 +151,26 @@ def obter_proximo_numero(evento="CORRIDA_SESI_2026"):
 # CONFIGURAÇÃO DO APP
 # ==============================
 st.set_page_config(
-    page_title="AGYTE-SE | 2ª CORRIDA SESI",
-    page_icon="🏃",
+    page_title="SESI CORRIDA | PREPARAÇÃO GRATUITA",
+    page_icon="🏃‍♂️",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # ==============================
-# CSS COMPLETO (MANTIDO COM AJUSTES DE RESPONSIVIDADE)
+# CSS COMPLETO - CORES VIBRANTES E LEGÍVEIS
 # ==============================
 st.markdown("""
 <style>
-    /* FUNDO COM GRADIENTE FLUIDO ROSA/LILÁS */
+    /* FUNDO COM GRADIENTE AZUL ESCURO */
     .stApp {
         background: 
-            linear-gradient(125deg, 
-                #ff1493 0%, 
-                #ff69b4 25%, 
-                #da70d6 50%, 
-                #9370db 75%, 
-                #8a2be2 100%);
+            linear-gradient(135deg, 
+                #0f172a 0%, 
+                #1e3a8a 25%, 
+                #1e40af 50%, 
+                #1e3a8a 75%, 
+                #0f172a 100%);
         background-size: 400% 400%;
         animation: fluidGradient 12s ease infinite;
         min-height: 100vh;
@@ -205,43 +203,26 @@ st.markdown("""
         50% { transform: scale(1.05); }
     }
     
-    /* ANIMAÇÃO DE PISCAR */
     @keyframes blink {
         0%, 100% { 
             opacity: 1;
-            box-shadow: 0 0 60px rgba(76, 175, 80, 0.8);
+            box-shadow: 0 0 60px rgba(59, 130, 246, 0.8);
         }
         50% { 
             opacity: 0.9;
-            box-shadow: 0 0 100px rgba(76, 175, 80, 1);
+            box-shadow: 0 0 100px rgba(59, 130, 246, 1);
         }
     }
     
-    /* =============================
-       CAIXA DE SUCESSO GRANDE E PISCANTE
-    ============================= */
-    .success-box-big {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, 
-            rgba(76, 175, 80, 0.95) 0%, 
-            rgba(56, 142, 60, 0.95) 100%);
-        border-radius: 25px;
-        padding: 3rem 4rem;
-        z-index: 9999;
-        border: 4px solid rgba(255, 255, 255, 0.9);
-        box-shadow: 
-            0 0 80px rgba(76, 175, 80, 0.8),
-            0 30px 70px rgba(0, 0, 0, 0.9),
-            inset 0 0 40px rgba(255, 255, 255, 0.2);
-        animation: blink 1.5s infinite alternate,
-                   popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        text-align: center;
-        min-width: 500px;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+    @keyframes blinkRed {
+        0%, 100% { 
+            opacity: 1;
+            box-shadow: 0 0 60px rgba(239, 68, 68, 0.8);
+        }
+        50% { 
+            opacity: 0.9;
+            box-shadow: 0 0 100px rgba(239, 68, 68, 1);
+        }
     }
     
     @keyframes popIn {
@@ -259,32 +240,6 @@ st.markdown("""
         }
     }
     
-    .success-title {
-        font-size: 2.8rem !important;
-        font-weight: 900 !important;
-        color: #ffffff !important;
-        margin-bottom: 1.5rem !important;
-        text-shadow: 
-            0 0 30px rgba(255, 255, 255, 0.8),
-            0 0 60px rgba(76, 175, 80, 0.5);
-        letter-spacing: 2px;
-        text-transform: uppercase;
-    }
-    
-    .success-vip {
-        font-size: 4.5rem !important;
-        font-weight: 900 !important;
-        color: #ffffff !important;
-        margin: 1rem 0 !important;
-        text-shadow: 
-            0 0 40px rgba(255, 255, 255, 1),
-            0 0 80px rgba(76, 175, 80, 0.8);
-        background: linear-gradient(45deg, #ffffff, #a5d6a7);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: vipPulse 2s infinite alternate;
-    }
-    
     @keyframes vipPulse {
         0% { 
             transform: scale(1);
@@ -296,451 +251,12 @@ st.markdown("""
         }
     }
     
-    .success-subtitle {
-        font-size: 1.8rem !important;
-        font-weight: 700 !important;
-        color: rgba(255, 255, 255, 0.95) !important;
-        margin-top: 1.5rem !important;
-        text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        letter-spacing: 1px;
-    }
-    
-    .success-icon {
-        font-size: 5rem !important;
-        margin-bottom: 1rem !important;
-        animation: iconFloat 3s infinite ease-in-out;
-    }
-    
     @keyframes iconFloat {
         0%, 100% { transform: translateY(0) rotate(0deg); }
         50% { transform: translateY(-20px) rotate(5deg); }
     }
     
-    /* CAIXA DE ERRO */
-    .error-box {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, 
-            rgba(244, 67, 54, 0.95) 0%, 
-            rgba(211, 47, 47, 0.95) 100%);
-        border-radius: 25px;
-        padding: 3rem 4rem;
-        z-index: 9999;
-        border: 4px solid rgba(255, 255, 255, 0.9);
-        box-shadow: 
-            0 0 80px rgba(244, 67, 54, 0.8),
-            0 30px 70px rgba(0, 0, 0, 0.9),
-            inset 0 0 40px rgba(255, 255, 255, 0.2);
-        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        text-align: center;
-        min-width: 500px;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-    }
-    
-    /* =============================
-       MEDIA QUERIES RESPONSIVAS - APENAS AJUSTES NECESSÁRIOS
-    ============================= */
-    @media (max-width: 768px) {
-        .success-box-big,
-        .error-box {
-            min-width: 300px;
-            padding: 2rem;
-            margin: 1rem;
-        }
-        
-        .success-title {
-            font-size: 2rem !important;
-        }
-        
-        .success-vip {
-            font-size: 3rem !important;
-        }
-        
-        .success-subtitle {
-            font-size: 1.3rem !important;
-        }
-        
-        .success-icon {
-            font-size: 3.5rem !important;
-        }
-        
-        .main-container {
-            margin: 0.5rem !important;
-            padding: 1.5rem !important;
-            border-radius: 25px !important;
-        }
-        
-        .header-container {
-            padding: 1.5rem !important;
-            border-radius: 20px !important;
-            margin-bottom: 1.5rem !important;
-        }
-        
-        .title-text {
-            font-size: 2.8rem !important;
-            letter-spacing: -1px !important;
-        }
-        
-        .subtitle-text {
-            font-size: 1.2rem !important;
-            letter-spacing: 3px !important;
-        }
-        
-        .event-badge {
-            padding: 0.8rem 1.5rem !important;
-            font-size: 0.9rem !important;
-            letter-spacing: 2px !important;
-            margin-top: 1rem !important;
-        }
-        
-        .form-container {
-            padding: 1.5rem !important;
-            margin: 1rem auto !important;
-            border-radius: 20px !important;
-        }
-        
-        .form-title {
-            font-size: 1.8rem !important;
-        }
-        
-        /* AJUSTES PARA COLUNAS EM MOBILE - APENAS TAMANHO */
-        .st-emotion-cache-1r6slb0 {
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .st-emotion-cache-1r6slb0 > div {
-            width: 100% !important;
-        }
-        
-        /* INPUTS EM MOBILE */
-        .stTextInput > div > div > input,
-        .stSelectbox > div > div > select {
-            padding: 0.8rem !important;
-            font-size: 1rem !important;
-        }
-        
-        /* BOTÃO EM MOBILE */
-        .stButton button {
-            padding: 1rem 1.5rem !important;
-            font-size: 1.2rem !important;
-            letter-spacing: 2px !important;
-            margin-top: 1rem !important;
-        }
-        
-        /* AJUSTE DO CÍRCULO EM MOBILE */
-        .circle-header {
-            width: 180px !important;
-            height: 180px !important;
-        }
-        
-        .circle-header .agyte-juntos {
-            font-size: 1.8rem !important;
-        }
-        
-        .circle-header .juntos {
-            font-size: 0.85rem !important;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .success-box-big,
-        .error-box {
-            min-width: 280px;
-            padding: 1.5rem;
-        }
-        
-        .success-title {
-            font-size: 1.6rem !important;
-        }
-        
-        .success-vip {
-            font-size: 2.5rem !important;
-        }
-        
-        .title-text {
-            font-size: 2.2rem !important;
-        }
-        
-        .subtitle-text {
-            font-size: 1rem !important;
-            letter-spacing: 2px !important;
-        }
-        
-        .form-title {
-            font-size: 1.5rem !important;
-        }
-        
-        .main-container {
-            padding: 1rem !important;
-            margin: 0.25rem !important;
-        }
-        
-        .circle-header {
-            width: 150px !important;
-            height: 150px !important;
-        }
-        
-        .circle-header .agyte-juntos {
-            font-size: 1.5rem !important;
-        }
-        
-        .circle-header .juntos {
-            font-size: 0.75rem !important;
-        }
-        
-        .food-donation {
-            padding: 0.8rem !important;
-            font-size: 0.9rem !important;
-            margin: 1rem auto !important;
-            max-width: 95% !important;
-        }
-    }
-    
-    /* =============================
-       CENA GYM REAL - MANTIDO IGUAL
-    ============================= */
-    .gym-real {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        overflow: hidden;
-        pointer-events: none;
-    }
-    
-    /* =============================
-       HALTER REALISTA COM LATERAIS MAIORES
-    ============================= */
-    .real-dumbbell {
-        position: absolute;
-        width: 480px;
-        height: 160px;
-        left: 8%;
-        top: 20%;
-        animation: floatDumbbell 6s ease-in-out infinite,
-                   rotateDumbbell 25s linear infinite;
-        transform-origin: center center;
-    }
-    
-    /* Barra - MAIS LONGA */
-    .real-dumbbell .bar {
-        position: absolute;
-        left: 100px;
-        right: 100px;
-        top: 50%;
-        height: 24px;
-        transform: translateY(-50%);
-        background: linear-gradient(90deg, 
-            #333 0%,
-            #666 20%,
-            #999 40%,
-            #ccc 50%,
-            #999 60%,
-            #666 80%,
-            #333 100%);
-        border-radius: 12px;
-        box-shadow: 
-            inset 0 0 20px rgba(0,0,0,0.8),
-            0 0 25px rgba(0,0,0,0.7),
-            0 0 50px rgba(255, 20, 147, 0.2);
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        z-index: 2;
-    }
-    
-    /* Grupo de anilhas - LATERAIS MAIORES */
-    .weight-stack {
-        position: absolute;
-        width: 120px;
-        height: 100%;
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        z-index: 1;
-    }
-    
-    .weight-stack.left { 
-        left: 0; 
-        justify-content: flex-end;
-    }
-    
-    .weight-stack.right { 
-        right: 0; 
-        justify-content: flex-start;
-    }
-    
-    /* Anilha circular - MAIOR E MAIS ESPESSA */
-    .weight {
-        width: 55px;
-        height: 110px;
-        border-radius: 50%;
-        background: radial-gradient(circle at 30% 30%, 
-            #666 0%,
-            #444 30%,
-            #222 60%,
-            #000 100%);
-        box-shadow:
-            inset 0 0 20px rgba(255,255,255,0.15),
-            inset 0 0 35px rgba(0,0,0,0.6),
-            0 12px 30px rgba(0,0,0,0.8),
-            0 0 25px rgba(255, 20, 147, 0.15);
-        border: 3px solid rgba(255,255,255,0.1);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    /* Detalhes das anilhas */
-    .weight::before {
-        content: "";
-        position: absolute;
-        inset: 12px;
-        border-radius: 50%;
-        background: radial-gradient(circle, #111, #000);
-        box-shadow: inset 0 0 12px rgba(0,0,0,0.8);
-    }
-    
-    /* Anilha individual com marcação */
-    .weight:nth-child(1)::after {
-        content: "20";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: rgba(255,255,255,0.25);
-        font-weight: 900;
-        font-size: 16px;
-        font-family: 'Arial Black', sans-serif;
-        text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
-    }
-    
-    .weight:nth-child(2)::after {
-        content: "10";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: rgba(255,255,255,0.25);
-        font-weight: 900;
-        font-size: 16px;
-        font-family: 'Arial Black', sans-serif;
-        text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
-    }
-    
-    .weight:nth-child(3)::after {
-        content: "5";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: rgba(255,255,255,0.25);
-        font-weight: 900;
-        font-size: 14px;
-        font-family: 'Arial Black', sans-serif;
-        text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
-    }
-    
-    /* =============================
-       ANILHA OCTOGONAL REAL - MAIOR
-    ============================= */
-    .real-plate {
-        position: absolute;
-        width: 240px;
-        height: 240px;
-        right: 8%;
-        bottom: 12%;
-        background: linear-gradient(145deg, 
-            #444 0%,
-            #222 30%,
-            #000 100%);
-        clip-path: polygon(
-            30% 0%, 70% 0%,
-            100% 30%, 100% 70%,
-            70% 100%, 30% 100%,
-            0% 70%, 0% 30%
-        );
-        box-shadow:
-            inset 0 0 35px rgba(255,255,255,0.12),
-            inset 0 0 70px rgba(0,0,0,0.7),
-            0 30px 70px rgba(0,0,0,0.9),
-            0 0 90px rgba(255, 20, 147, 0.3);
-        animation: floatPlate 7s ease-in-out infinite,
-                   rotateReverse 35s linear infinite;
-        border: 4px solid rgba(255,255,255,0.08);
-        transform-origin: center center;
-    }
-    
-    /* Furo central - MAIOR */
-    .real-plate::before {
-        content: "";
-        position: absolute;
-        inset: 85px;
-        border-radius: 50%;
-        background: radial-gradient(circle, #111, #000);
-        box-shadow: 
-            inset 0 0 25px rgba(0,0,0,0.9),
-            0 0 30px rgba(0,0,0,0.6);
-        border: 3px solid rgba(255,255,255,0.05);
-    }
-    
-    /* Marcação - MAIOR */
-    .real-plate::after {
-        content: "35";
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 48px;
-        font-weight: 900;
-        color: rgba(255,255,255,0.3);
-        font-family: 'Arial Black', sans-serif;
-        text-shadow: 
-            3px 3px 0 rgba(0,0,0,0.9),
-            -1px -1px 0 rgba(255,255,255,0.1);
-        letter-spacing: 3px;
-    }
-    
-    .real-plate .kg {
-        position: absolute;
-        bottom: 32%;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 18px;
-        font-weight: 900;
-        color: rgba(255,255,255,0.25);
-        letter-spacing: 3px;
-        text-shadow: 2px 2px 0 rgba(0,0,0,0.8);
-    }
-    
-    /* =============================
-       ANIMAÇÕES - MANTIDAS IGUAIS
-    ============================= */
-    @keyframes floatDumbbell {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        25% { transform: translate(-20px, -30px) rotate(5deg); }
-        50% { transform: translate(15px, -20px) rotate(-2deg); }
-        75% { transform: translate(-10px, 25px) rotate(3deg); }
-    }
-    
-    @keyframes floatPlate {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        33% { transform: translate(25px, -25px) rotate(-5deg); }
-        66% { transform: translate(-15px, 20px) rotate(4deg); }
-    }
-    
-    @keyframes rotateDumbbell {
-        from { transform: rotate(0deg); }
-        to   { transform: rotate(360deg); }
-    }
-    
-    @keyframes rotateReverse {
-        from { transform: rotate(0deg); }
-        to   { transform: rotate(-360deg); }
-    }
-    
-    /* LINHAS ABSTRATAS RESPONSIVAS */
+    /* LINHAS ABSTRATAS */
     .abstract-lines {
         position: fixed;
         top: 0;
@@ -749,7 +265,7 @@ st.markdown("""
         height: 100%;
         pointer-events: none;
         z-index: 0;
-        opacity: 0.3;
+        opacity: 0.15;
     }
     
     .line {
@@ -768,169 +284,233 @@ st.markdown("""
         100% { transform: translateX(100vw) rotate(360deg); }
     }
     
-    /* LOGO DILADY SEM O BACKGROUND BRANCO DE "ATHLETIC" */
-    .dilady-logo {
-        position: relative;
-        font-family: 'Playfair Display', 'Georgia', serif;
-        font-weight: 900;
-        font-size: 3.5rem;
-        background: linear-gradient(45deg, 
-            #ff1493 0%, 
-            #ff69b4 33%, 
-            #da70d6 66%, 
-            #8a2be2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 
-            0 5px 20px rgba(255, 20, 147, 0.5),
-            0 10px 40px rgba(138, 43, 226, 0.3);
-        letter-spacing: 2px;
-        margin-bottom: 1.5rem;
-    }
-    
-    /* REMOVENDO O RETÂNGULO BRANCO DE ATHLETIC */
-    .dilady-logo::after {
-        content: none;
-    }
-    
-    /* CONTAINER PRINCIPAL COM NEON EFFECT RESPONSIVO */
+    /* CONTAINER PRINCIPAL */
     .main-container {
-        background: rgba(0, 0, 0, 0.85);
+        background: rgba(0, 0, 0, 0.75);
         backdrop-filter: blur(35px);
         -webkit-backdrop-filter: blur(35px);
         border-radius: 40px;
         border: 2px solid rgba(255, 255, 255, 0.15);
         box-shadow: 
             0 35px 70px rgba(0, 0, 0, 0.8),
-            0 0 150px rgba(255, 20, 147, 0.3),
-            inset 0 0 80px rgba(255, 255, 255, 0.05);
+            0 0 150px rgba(59, 130, 246, 0.3),
+            inset 0 0 80px rgba(255, 255, 255, 0.03);
         padding: 3rem 2rem;
         margin: 1rem;
         position: relative;
         z-index: 10;
     }
     
-    /* HEADER RESPONSIVO */
-    .header-container {
+    /* HEADER NOMES - ESTILO BOLINHA */
+    .header-nomes {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 3rem;
+        margin-bottom: 2.5rem;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    
+    .nome-box {
+        padding: 1.2rem 2.5rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s ease;
         text-align: center;
-        padding: 2.5rem 1rem;
-        background: linear-gradient(135deg, 
-            rgba(255, 20, 147, 0.15) 0%, 
-            rgba(218, 112, 214, 0.2) 50%,
-            rgba(138, 43, 226, 0.15) 100%);
-        border-radius: 30px;
-        margin-bottom: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-width: 180px;
+    }
+    
+    .nome-box:hover {
+        transform: scale(1.08);
+    }
+    
+    .nome-sesi-box {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        border: 3px solid rgba(96, 165, 250, 0.8);
+        box-shadow: 
+            0 0 50px rgba(59, 130, 246, 0.6),
+            0 10px 30px rgba(0, 0, 0, 0.5),
+            inset 0 0 30px rgba(255, 255, 255, 0.1);
+        animation: glowBlue 3s infinite alternate;
+    }
+    
+    @keyframes glowBlue {
+        0% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.5), 0 10px 30px rgba(0, 0, 0, 0.5); }
+        100% { box-shadow: 0 0 70px rgba(96, 165, 250, 0.8), 0 15px 40px rgba(0, 0, 0, 0.6); }
+    }
+    
+    .nome-dilady-box {
+        background: linear-gradient(135deg, #9d174d 0%, #ec4899 100%);
+        border: 3px solid rgba(244, 114, 182, 0.8);
+        box-shadow: 
+            0 0 50px rgba(236, 72, 153, 0.6),
+            0 10px 30px rgba(0, 0, 0, 0.5),
+            inset 0 0 30px rgba(255, 255, 255, 0.1);
+        animation: glowPink 3s infinite alternate;
+    }
+    
+    @keyframes glowPink {
+        0% { box-shadow: 0 0 40px rgba(236, 72, 153, 0.5), 0 10px 30px rgba(0, 0, 0, 0.5); }
+        100% { box-shadow: 0 0 70px rgba(244, 114, 182, 0.8), 0 15px 40px rgba(0, 0, 0, 0.6); }
+    }
+    
+    .nome-sesi {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #ffffff;
+        letter-spacing: 8px;
+        text-shadow: 
+            0 0 20px rgba(255, 255, 255, 0.8),
+            0 0 40px rgba(59, 130, 246, 0.8),
+            0 0 80px rgba(59, 130, 246, 0.5);
+        font-family: 'Arial Black', 'Impact', sans-serif;
+    }
+    
+    .nome-dilady {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: #ffffff;
+        letter-spacing: 4px;
+        text-shadow: 
+            0 0 20px rgba(255, 255, 255, 0.8),
+            0 0 40px rgba(236, 72, 153, 0.8),
+            0 0 80px rgba(236, 72, 153, 0.5);
+        font-family: 'Georgia', 'Times New Roman', serif;
+        font-style: italic;
+    }
+    
+    /* CIRCLE HEADER */
+    .circle-header {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb 0%, #60a5fa 40%, #f472b6 70%, #ec4899 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1.5rem;
+        box-shadow: 
+            0 10px 30px rgba(59, 130, 246, 0.5),
+            0 0 80px rgba(96, 165, 250, 0.6),
+            0 0 100px rgba(236, 72, 153, 0.3),
+            inset 0 0 40px rgba(255, 255, 255, 0.2);
+        border: 3px solid rgba(255, 255, 255, 0.4);
         position: relative;
         overflow: hidden;
+        animation: circlePulse 4s infinite alternate;
+        margin: 0 auto;
     }
     
-    .header-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, 
-            transparent, 
-            rgba(255, 255, 255, 0.1), 
-            transparent);
-        animation: headerShine 8s infinite;
-    }
-    
-    @keyframes headerShine {
-        100% { left: 100%; }
-    }
-    
-    .title-text {
-        font-size: 4.5rem;
-        font-weight: 900;
-        background: linear-gradient(45deg, 
-            #ffffff 0%, 
-            #ffb6c1 20%, 
-            #ff69b4 40%, 
-            #da70d6 60%, 
-            #9370db 80%, 
-            #ffffff 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 
-            0 0 50px rgba(255, 20, 147, 0.7),
-            0 0 100px rgba(138, 43, 226, 0.5);
-        margin: 0;
-        letter-spacing: -2px;
-        text-transform: uppercase;
-        font-family: 'Montserrat', 'Arial Black', sans-serif;
-        animation: titlePulse 4s infinite alternate;
-    }
-    
-    @keyframes titlePulse {
+    @keyframes circlePulse {
         0% { 
-            filter: drop-shadow(0 0 40px rgba(255, 20, 147, 0.8));
-            background-size: 100% 100%;
+            transform: scale(1);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5),
+                        0 0 80px rgba(96, 165, 250, 0.6),
+                        0 0 100px rgba(236, 72, 153, 0.3);
         }
         100% { 
-            filter: drop-shadow(0 0 60px rgba(138, 43, 226, 0.9));
-            background-size: 150% 150%;
+            transform: scale(1.08);
+            box-shadow: 0 20px 50px rgba(59, 130, 246, 0.7),
+                        0 0 120px rgba(96, 165, 250, 0.9),
+                        0 0 150px rgba(236, 72, 153, 0.5);
         }
     }
     
-    .subtitle-text {
-        color: #ffffff;
-        font-size: 1.8rem;
-        font-weight: 700;
-        letter-spacing: 6px;
-        margin-top: 1rem;
+    .circle-header::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        animation: circleRotate 10s linear infinite;
+    }
+    
+    @keyframes circleRotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .circle-header .programa {
+        font-size: 1rem;
+        font-weight: 800;
+        color: white;
         text-transform: uppercase;
+        letter-spacing: 3px;
+        margin-bottom: 0.3rem;
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .circle-header .title {
+        font-size: clamp(1.5rem, 5vw, 1.9rem);
+        font-weight: 900;
+        color: white;
+        margin: 0.2rem 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
         text-shadow: 
-            0 0 30px rgba(255, 255, 255, 0.9),
-            0 0 60px rgba(255, 105, 180, 0.5);
-        animation: subtitleGlow 3s infinite alternate;
+            0 0 20px rgba(255, 255, 255, 1),
+            0 0 40px rgba(59, 130, 246, 0.8);
+        position: relative;
+        z-index: 1;
+        line-height: 1.1;
     }
     
-    @keyframes subtitleGlow {
-        0% { opacity: 0.9; }
-        100% { opacity: 1; }
+    .circle-header .subtitle {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.95);
+        letter-spacing: 2px;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+        position: relative;
+        z-index: 1;
+        margin-top: 0.3rem;
     }
     
+    /* EVENT BADGE */
     .event-badge {
         display: inline-block;
         background: linear-gradient(45deg, 
-            rgba(255, 20, 147, 0.9), 
-            rgba(218, 112, 214, 0.9));
+            rgba(37, 99, 235, 0.9), 
+            rgba(236, 72, 153, 0.7));
         color: white;
         padding: 1.2rem 3rem;
         border-radius: 50px;
         font-weight: 900;
         letter-spacing: 4px;
-        margin-top: 2rem;
+        margin-top: 1.5rem;
         text-transform: uppercase;
         font-size: 1.2rem;
-        border: 3px solid rgba(255, 255, 255, 0.6);
+        border: 3px solid rgba(255, 255, 255, 0.7);
         box-shadow: 
-            0 0 60px rgba(255, 20, 147, 0.8),
+            0 0 60px rgba(59, 130, 246, 0.8),
+            0 0 80px rgba(236, 72, 153, 0.5),
             0 20px 50px rgba(0, 0, 0, 0.7);
         animation: badgeFloat 4s infinite ease-in-out;
     }
     
     @keyframes badgeFloat {
         0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-15px) scale(1.05); }
+        50% { transform: translateY(-8px) scale(1.03); }
     }
     
-    /* FORMULÁRIO PREMIUM RESPONSIVO */
+    /* FORMULÁRIO PREMIUM */
     .form-container {
-        background: rgba(0, 0, 0, 0.9);
+        background: rgba(0, 0, 0, 0.85);
         border-radius: 30px;
         padding: 3rem;
         margin: 2rem auto;
         max-width: 800px;
-        border: 2px solid rgba(255, 105, 180, 0.4);
+        border: 2px solid rgba(59, 130, 246, 0.5);
         box-shadow: 
             0 30px 80px rgba(0, 0, 0, 1),
-            0 0 120px rgba(255, 20, 147, 0.4),
-            inset 0 0 60px rgba(255, 255, 255, 0.05);
+            0 0 120px rgba(59, 130, 246, 0.4),
+            inset 0 0 60px rgba(255, 255, 255, 0.03);
         position: relative;
         overflow: hidden;
     }
@@ -944,11 +524,11 @@ st.markdown("""
         height: 200%;
         background: conic-gradient(
             from 0deg at 50% 50%,
-            rgba(255, 20, 147, 0.1) 0deg,
-            rgba(218, 112, 214, 0.1) 90deg,
-            rgba(138, 43, 226, 0.1) 180deg,
-            rgba(255, 20, 147, 0.1) 270deg,
-            rgba(255, 20, 147, 0.1) 360deg
+            rgba(59, 130, 246, 0.08) 0deg,
+            rgba(147, 197, 253, 0.08) 90deg,
+            rgba(236, 72, 153, 0.08) 180deg,
+            rgba(59, 130, 246, 0.08) 270deg,
+            rgba(59, 130, 246, 0.08) 360deg
         );
         animation: formRotate 20s linear infinite;
         z-index: -1;
@@ -968,27 +548,27 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 3px;
         text-shadow: 
-            0 0 40px rgba(255, 20, 147, 0.9),
-            0 0 80px rgba(218, 112, 214, 0.5);
-        background: linear-gradient(45deg, #ffffff, #ffb6c1);
+            0 0 40px rgba(59, 130, 246, 0.9),
+            0 0 80px rgba(236, 72, 153, 0.3);
+        background: linear-gradient(45deg, #ffffff, #bfdbfe);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         position: relative;
         z-index: 2;
     }
     
-    /* INPUTS PREMIUM RESPONSIVOS */
+    /* INPUTS PREMIUM */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
         background: rgba(0, 0, 0, 0.9) !important;
-        border: 2px solid rgba(255, 105, 180, 0.5) !important;
+        border: 2px solid rgba(59, 130, 246, 0.6) !important;
         border-radius: 15px !important;
         padding: 1.2rem !important;
         font-size: 1.2rem !important;
         color: #ffffff !important;
         box-shadow: 
-            inset 0 0 30px rgba(255, 105, 180, 0.15),
-            0 0 30px rgba(255, 20, 147, 0.3) !important;
+            inset 0 0 30px rgba(59, 130, 246, 0.1),
+            0 0 30px rgba(59, 130, 246, 0.3) !important;
         transition: all 0.3s ease !important;
         position: relative;
         z-index: 2;
@@ -996,58 +576,33 @@ st.markdown("""
     
     .stTextInput > div > div > input:focus,
     .stSelectbox > div > div > select:focus {
-        border-color: #ff1493 !important;
+        border-color: #60a5fa !important;
         box-shadow: 
-            inset 0 0 40px rgba(255, 20, 147, 0.25),
-            0 0 50px rgba(255, 20, 147, 0.5) !important;
+            inset 0 0 40px rgba(59, 130, 246, 0.2),
+            0 0 50px rgba(59, 130, 246, 0.6) !important;
         background: rgba(0, 0, 0, 1) !important;
         transform: scale(1.02);
     }
     
     .stTextInput label,
     .stSelectbox label {
-        color: #ffb6c1 !important;
-        font-weight: 700 !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
         font-size: 1.1rem !important;
         text-transform: uppercase !important;
         letter-spacing: 2px !important;
         margin-bottom: 0.8rem !important;
-        text-shadow: 0 0 20px rgba(255, 20, 147, 0.8);
+        text-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
         position: relative;
         z-index: 2;
     }
     
-    /* MENSAGENS */
-    .success-message {
-        color: #4CAF50 !important;
-        font-size: 1.1rem !important;
-        font-weight: 700 !important;
-        margin-top: 1rem !important;
-        padding: 1rem !important;
-        background: rgba(76, 175, 80, 0.1) !important;
-        border-radius: 10px !important;
-        border-left: 4px solid #4CAF50 !important;
-        text-align: center !important;
-    }
-    
-    .error-message {
-        color: #ff6b6b !important;
-        font-size: 1.1rem !important;
-        font-weight: 700 !important;
-        margin-top: 1rem !important;
-        padding: 1rem !important;
-        background: rgba(255, 107, 107, 0.1) !important;
-        border-radius: 10px !important;
-        border-left: 4px solid #ff6b6b !important;
-        text-align: center !important;
-    }
-    
-    /* BOTÃO PREMIUM RESPONSIVO - MELHORADO E MAIOR */
+    /* BOTÃO PREMIUM */
     .stButton button {
         background: linear-gradient(45deg, 
-            #ff1493 0%, 
-            #da70d6 50%, 
-            #ff1493 100%) !important;
+            #2563eb 0%, 
+            #60a5fa 50%, 
+            #2563eb 100%) !important;
         background-size: 200% 100% !important;
         color: white !important;
         border: 4px solid rgba(255, 255, 255, 0.9) !important;
@@ -1061,7 +616,7 @@ st.markdown("""
         width: 100% !important;
         margin-top: 2rem !important;
         box-shadow: 
-            0 0 120px rgba(255, 20, 147, 1),
+            0 0 120px rgba(59, 130, 246, 1),
             0 30px 90px rgba(0, 0, 0, 0.9),
             inset 0 0 50px rgba(255, 255, 255, 0.4) !important;
         animation: buttonPulse 1.2s infinite alternate, buttonShine 3s infinite;
@@ -1076,62 +631,35 @@ st.markdown("""
     .stButton button:hover {
         transform: scale(1.08) !important;
         box-shadow: 
-            0 0 150px rgba(218, 112, 214, 1),
+            0 0 150px rgba(96, 165, 250, 1),
             0 35px 110px rgba(0, 0, 0, 1),
             inset 0 0 60px rgba(255, 255, 255, 0.5) !important;
     }
     
     @keyframes buttonPulse {
-        0% { 
-            transform: scale(1);
-        }
-        100% { 
-            transform: scale(1.05);
-        }
+        0% { transform: scale(1); }
+        100% { transform: scale(1.05); }
     }
     
     @keyframes buttonShine {
-        0%, 100% {
-            background-position: 0% 50%;
-        }
-        50% {
-            background-position: 100% 50%;
-        }
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
     }
     
-    /* TEXTO DO BOTÃO COM INDICAÇÃO CLARA */
-    .button-text {
-        display: block;
-        position: relative;
-        z-index: 2;
-        text-shadow: 0 0 25px rgba(255, 255, 255, 0.9);
+    /* TEXTOS AUXILIARES - BRANCOS PARA LEGIBILIDADE */
+    .texto-branco {
+        color: #ffffff !important;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
     
-    .button-text::after {
-        content: "⬇️ CLIQUE AGORA! ⬇️";
-        display: block;
-        font-size: 1.1rem;
-        font-weight: 900;
-        margin-top: 0.8rem;
-        letter-spacing: 2px;
-        color: rgba(255, 255, 255, 1);
-        animation: arrowBlink 1.5s infinite;
-        text-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
-        background: rgba(0, 0, 0, 0.3);
-        padding: 0.5rem;
-        border-radius: 10px;
-        border: 2px dashed rgba(255, 255, 255, 0.6);
+    .texto-destaque {
+        color: #fbbf24 !important;
+        font-weight: 800 !important;
     }
     
-    @keyframes arrowBlink {
-        0%, 100% { 
-            opacity: 1;
-            transform: scale(1);
-        }
-        50% { 
-            opacity: 0.8;
-            transform: scale(1.05);
-        }
+    .texto-azul-claro {
+        color: #93c5fd !important;
+        font-weight: 700 !important;
     }
     
     /* Hide Streamlit elements */
@@ -1140,74 +668,80 @@ st.markdown("""
     header {visibility: hidden;}
     .st-emotion-cache-1dp5vir {display: none;}
     
-    /* CONTADOR MAIS PRÓXIMO */
-    .counter-container {
-        margin-top: 1.5rem !important;
-        margin-bottom: 1.5rem !important;
-    }
-    
-    /* RODAPÉ MAIS PRÓXIMO */
-    .footer-container {
-        margin-top: 2rem !important;
-    }
-    
-    /* MENSAGEM DA TAXA DE INSCRIÇÃO */
-    .fee-box {
-        background: linear-gradient(135deg, 
-            rgba(255, 215, 0, 0.2) 0%, 
-            rgba(255, 165, 0, 0.2) 100%);
-        border: 3px solid #FFD700;
-        border-radius: 20px;
-        padding: 1.5rem;
-        margin: 2rem auto;
-        text-align: center;
-        max-width: 600px;
-        box-shadow: 
-            0 0 50px rgba(255, 215, 0, 0.4),
-            0 15px 40px rgba(0, 0, 0, 0.3);
-        animation: feeGlow 3s infinite alternate;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-    }
-    
-    @keyframes feeGlow {
-        0% { 
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.4),
-                       0 15px 40px rgba(0, 0, 0, 0.3);
+    /* MEDIA QUERIES */
+    @media (max-width: 768px) {
+        .main-container {
+            margin: 0.5rem !important;
+            padding: 1.5rem !important;
+            border-radius: 25px !important;
         }
-        100% { 
-            box-shadow: 0 0 70px rgba(255, 165, 0, 0.6),
-                       0 20px 50px rgba(0, 0, 0, 0.4);
+        
+        .form-container {
+            padding: 1.5rem !important;
+            margin: 1rem auto !important;
+            border-radius: 20px !important;
+        }
+        
+        .form-title {
+            font-size: 1.8rem !important;
+        }
+        
+        .stTextInput > div > div > input,
+        .stSelectbox > div > div > select {
+            padding: 0.8rem !important;
+            font-size: 1rem !important;
+        }
+        
+        .stButton button {
+            padding: 1rem 1.5rem !important;
+            font-size: 1.2rem !important;
+            letter-spacing: 2px !important;
+        }
+        
+        .circle-header {
+            width: 180px !important;
+            height: 180px !important;
+        }
+        
+        .header-nomes {
+            gap: 1.5rem !important;
+        }
+        
+        .nome-box {
+            padding: 1rem 1.5rem !important;
+            min-width: 140px !important;
+        }
+        
+        .nome-sesi, .nome-dilady {
+            font-size: 1.6rem !important;
+        }
+        
+        .event-badge {
+            padding: 0.8rem 1.5rem !important;
+            font-size: 0.9rem !important;
         }
     }
     
-    .fee-icon {
-        font-size: 3rem;
-        margin-bottom: 0.8rem;
-        display: block;
+    @media (max-width: 480px) {
+        .main-container {
+            padding: 1rem !important;
+        }
+        
+        .circle-header {
+            width: 150px !important;
+            height: 150px !important;
+        }
+        
+        .nome-sesi, .nome-dilady {
+            font-size: 1.3rem !important;
+        }
     }
     
-    .fee-title {
-        color: #FFD700;
-        font-size: 1.8rem;
-        font-weight: 900;
-        margin-bottom: 0.5rem;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-    }
-    
-    .fee-description {
-        color: rgba(255, 255, 255, 0.95);
-        font-size: 1.1rem;
-        font-weight: 600;
-        line-height: 1.5;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==============================
-# ELEMENTOS DE CENA DE ACADEMIA COM HALTERES MAIORES
+# LINHAS ABSTRATAS
 # ==============================
 st.markdown("""
 <div class="abstract-lines">
@@ -1217,228 +751,73 @@ st.markdown("""
     <div class="line" style="top: 88%; width: 300px; animation-delay: 12s; animation-duration: 20s;"></div>
     <div class="line" style="top: 28%; width: 250px; animation-delay: 16s; animation-duration: 24s;"></div>
 </div>
-
-<div class="gym-real">
-    <div class="real-dumbbell">
-        <div class="weight-stack left">
-            <div class="weight"></div>
-            <div class="weight"></div>
-            <div class="weight"></div>
-        </div>
-        <div class="bar"></div>
-        <div class="weight-stack right">
-            <div class="weight"></div>
-            <div class="weight"></div>
-            <div class="weight"></div>
-        </div>
-    </div>
-    <div class="real-plate">
-        <div class="kg">KG</div>
-    </div>
-</div>
 """, unsafe_allow_html=True)
 
 # ==============================
-# CABEÇALHO - MANTIDO IGUAL AO ORIGINAL COM PROGRAMA AGYTE-SE
+# CABEÇALHO PRINCIPAL
 # ==============================
-
 st.markdown("""
-<style>
-.main-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 1rem;
-}
-
-.circle-header {
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #FF69B4 0%, #DA70D6 50%, #9370DB 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 1.5rem;
-    box-shadow: 
-        0 10px 30px rgba(255, 20, 147, 0.4),
-        0 0 80px rgba(218, 112, 214, 0.6),
-        inset 0 0 40px rgba(255, 255, 255, 0.2);
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    position: relative;
-    overflow: hidden;
-    animation: circlePulse 4s infinite alternate;
-}
-
-@keyframes circlePulse {
-    0% { 
-        transform: scale(1);
-        box-shadow: 0 10px 30px rgba(255, 20, 147, 0.4),
-                    0 0 80px rgba(218, 112, 214, 0.6);
-    }
-    100% { 
-        transform: scale(1.05);
-        box-shadow: 0 15px 40px rgba(255, 20, 147, 0.6),
-                    0 0 100px rgba(218, 112, 214, 0.8);
-    }
-}
-
-.circle-header::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    animation: circleRotate 10s linear infinite;
-}
-
-@keyframes circleRotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.circle-header .programa {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: white;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-    position: relative;
-    z-index: 1;
-    line-height: 1;
-}
-
-.circle-header .agyte {
-    font-size: clamp(1.6rem, 6vw, 2.2rem);
-    font-weight: 900;
-    color: white;
-    margin: 0.2rem 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-shadow: 
-        0 0 20px rgba(255, 255, 255, 0.9),
-        0 0 40px rgba(255, 20, 147, 0.7);
-    position: relative;
-    z-index: 1;
-    line-height: 1.1;
-    text-align: center;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    white-space: normal;
-    word-break: keep-all;
-}
-
-.circle-header .juntos {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
-    letter-spacing: 1.5px;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-    position: relative;
-    z-index: 1;
-    margin-top: 0.3rem;
-    line-height: 1;
-    text-align: center;
-}
-
-.event-badge {
-    margin-top: 1.5rem;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #fff;
-    background: linear-gradient(45deg, rgba(255, 20, 147, 0.8), rgba(218, 112, 214, 0.8));
-    padding: 0.8rem 2rem;
-    border-radius: 30px;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 40px rgba(255, 20, 147, 0.5);
-    animation: badgeFloat 4s infinite ease-in-out;
-}
-
-@keyframes badgeFloat {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-8px) scale(1.03); }
-}
-</style>
-
 <div class="main-container">
+    <div class="header-nomes">
+        <div class="nome-box nome-sesi-box">
+            <div class="nome-sesi">SESI</div>
+        </div>
+        <div class="nome-box nome-dilady-box">
+            <div class="nome-dilady">DILADY</div>
+        </div>
+    </div>
     <div class="circle-header">
         <div class="programa">PROGRAMA</div>
-        <div class="agyte">AGYTE-SE</div>
-        <div class="juntos">JUNTOS EM MOVIMENTO</div>
+        <div class="title">SESI CORRIDA</div>
+        <div class="subtitle">PREPARAÇÃO GRATUITA</div>
     </div>
-    <div class="event-badge">
-        🏃 EVENTO EXCLUSIVO PARA COLABORADORES 🏃
+    <div style="text-align: center;">
+        <div class="event-badge">
+            🏃‍♂️ CORRA COM A GENTE! 🏃‍♀️
+        </div>
     </div>
-    <div style="margin-top: 2rem; color: rgba(255, 255, 255, 0.95); font-size: 1.3rem; font-weight: 600; max-width: 700px; margin-left: auto; margin-right: auto; padding: 0 1rem; text-align: center;">
-        <strong>2º CORRIDA NACIONAL SESI</strong>
+    <div style="margin-top: 2rem; color: #ffffff; font-size: 1.3rem; font-weight: 700; max-width: 700px; margin-left: auto; margin-right: auto; padding: 0 1rem; text-align: center;">
+        Participe da preparação gratuita do SESI!
     </div>
-</div>
 """, unsafe_allow_html=True)
 
 # ==============================
 # INFORMAÇÕES DO EVENTO
 # ==============================
 st.markdown("""
-<div style='text-align: center; margin: 3rem 0;'>
-    <div style='background: rgba(255, 20, 147, 0.2); 
-                border-radius: 25px; 
-                padding: 2rem;
-                border: 2px solid rgba(255, 105, 180, 0.4);
-                backdrop-filter: blur(15px);
-                box-shadow: 0 0 60px rgba(255, 20, 147, 0.3);'>
-        <h2 style='color: #ffffff; margin-bottom: 1.5rem; font-size: 2.2rem;'>
-            🏃 2ª CORRIDA NACIONAL SESI
-        </h2>
-        <div style='color: rgba(255, 255, 255, 0.95); font-size: 1.2rem; line-height: 1.6; padding: 0 1rem;'>
-            <div style='margin-bottom: 1rem;'>
-                📅 <span style='color: #e8919e; font-weight: 700;'>DATA:</span> 01 de maio de 2026
-            </div>
-            <div style='margin-bottom: 1rem;'>
-                ⏰ <span style='color: #e8919e; font-weight: 700;'>LARGADA:</span> 05:45h (horário de concentração)
-            </div>
-            <div style='margin-bottom: 1rem;'>
-                📍 <span style='color: #e8919e; font-weight: 700;'>LOCAL:</span> Av. Beira Mar (em frente ao Náutico)
-            </div>
-            <div style='margin-bottom: 1rem;'>
-                💰 <span style='color: #e8919e; font-weight: 700;'>INSCRIÇÃO:</span> R$ 25,00 (descontado em folha)
-            </div>
-            <div>
-                👕 <span style='color: #e8919e; font-weight: 700;'>KIT ATLETA:</span> Blusa de corrida (informe o tamanho no cadastro)
+    <div style='text-align: center; margin: 3rem 0;'>
+        <div style='background: rgba(30, 58, 138, 0.4); 
+                    border-radius: 25px; 
+                    padding: 2rem;
+                    border: 2px solid rgba(96, 165, 250, 0.5);
+                    backdrop-filter: blur(15px);
+                    box-shadow: 0 0 60px rgba(59, 130, 246, 0.3);'>
+            <h2 style='color: #ffffff; margin-bottom: 1.5rem; font-size: 2.2rem; text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);'>
+                🏃‍♂️ PREPARAÇÃO GRATUITA DE CORRIDA
+            </h2>
+            <div style='color: #ffffff; font-size: 1.2rem; line-height: 1.6; padding: 0 1rem;'>
+                <div style='margin-bottom: 1rem;'>
+                    🏆 <span style='color: #93c5fd; font-weight: 700;'>Metodologia SESI:</span> Preparação completa para corrida
+                </div>
+                <div style='margin-bottom: 1rem;'>
+                    🎓 <span style='color: #f9a8d4; font-weight: 900; text-shadow: 0 0 10px rgba(236, 72, 153, 0.8);'>SESI:</span> Preparação gratuita e profissional
+                </div>
+                <div>
+                    📅 <span style='color: #93c5fd; font-weight: 700;'>Sábados 18/07 e 01/08</span> • 7h30 às 8h30
+                </div>
+                <div style='margin-top: 1rem; color: #fbbf24; font-weight: 800; font-size: 1.3rem;'>
+                    ⏰ <span style='background: rgba(0,0,0,0.5); padding: 3px 12px; border-radius: 8px;'>INSCRIÇÕES: 26/06 às 12h nos Stories do Instagram do RH</span>
+                </div>
             </div>
         </div>
     </div>
-</div>
 """, unsafe_allow_html=True)
 
 # ==============================
-# MENSAGEM DA TAXA DE INSCRIÇÃO
+# CONTADORES PREMIUM (40 VAGAS)
 # ==============================
-st.markdown("""
-<div class="fee-box">
-    <div class="fee-icon">💰</div>
-    <div class="fee-title">TAXA DE INSCRIÇÃO</div>
-    <div class="fee-description">
-        <strong>R$ 25,00</strong> – valor será descontado em folha.<br>
-        Sua participação ajuda a promover saúde e bem‑estar!
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ==============================
-# CONTADORES PREMIUM - COM DADOS ATUALIZADOS DO BANCO
-# ==============================
-evento_atual = "CORRIDA_SESI_2026"
-total_banco_atual = contar_participantes(evento_atual)
-proximo_numero_atual = obter_proximo_numero(evento_atual)
-vagas_totais = 50   # Ajuste conforme a capacidade real
+total_banco_atual = contar_participantes()
+proximo_numero_atual = obter_proximo_numero()
 
 col1, col2, col3 = st.columns(3)
 
@@ -1448,18 +827,18 @@ with col1:
                 border-radius: 25px; 
                 padding: 2rem; 
                 text-align: center;
-                border: 2px solid rgba(255, 105, 180, 0.5);
+                border: 2px solid rgba(59, 130, 246, 0.5);
                 backdrop-filter: blur(15px);
-                box-shadow: 0 0 50px rgba(255, 20, 147, 0.4);
+                box-shadow: 0 0 50px rgba(59, 130, 246, 0.4);
                 height: 100%;'>
         <div style='font-size: 4rem; 
                     font-weight: 900; 
                     color: #ffffff;
-                    text-shadow: 0 0 30px #ff1493;
+                    text-shadow: 0 0 30px #3b82f6;
                     margin-bottom: 0.8rem;'>
-            {total_banco_atual}/{vagas_totais}
+            {total_banco_atual}/40
         </div>
-        <div style='color: #ffb6c1; 
+        <div style='color: #93c5fd; 
                     font-size: 1.2rem; 
                     text-transform: uppercase; 
                     letter-spacing: 3px;
@@ -1475,16 +854,17 @@ with col2:
                 border-radius: 25px; 
                 padding: 2rem; 
                 text-align: center;
-                border: 2px solid rgba(218, 112, 214, 0.5);
+                border: 2px solid rgba(96, 165, 250, 0.5);
                 backdrop-filter: blur(15px);
-                box-shadow: 0 0 50px rgba(218, 112, 214, 0.4);
+                box-shadow: 0 0 50px rgba(96, 165, 250, 0.4);
                 height: 100%;'>
-        <div style='font-size: 3rem; color: #ffffff; margin-bottom: 1rem;'>📅</div>
-        <div style='font-size: 2rem; color: #ffffff; font-weight: 900; margin-bottom: 0.5rem;'>
-            01/05/2026
+        <div style='font-size: 3rem; color: #ffffff; margin-bottom: 1rem;'>🏃‍♂️</div>
+        <div style='font-size: 1.2rem; color: #ffffff; font-weight: 900; margin-bottom: 0.5rem; line-height: 1.6;'>
+            SÁBADOS<br>
+            18/07 E 01/08
         </div>
-        <div style='color: #da70d6; font-size: 1.5rem; font-weight: 700;'>
-            05:45 HORAS
+        <div style='color: #93c5fd; font-size: 1.5rem; font-weight: 700;'>
+            7h30 - 8h30
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1495,15 +875,14 @@ with col3:
                 border-radius: 25px; 
                 padding: 2rem; 
                 text-align: center;
-                border: 2px solid rgba(138, 43, 226, 0.5);
+                border: 2px solid rgba(147, 197, 253, 0.5);
                 backdrop-filter: blur(15px);
-                box-shadow: 0 0 50px rgba(138, 43, 226, 0.4);
+                box-shadow: 0 0 50px rgba(147, 197, 253, 0.4);
                 height: 100%;'>
         <div style='font-size: 3rem; color: #ffffff; margin-bottom: 1rem;'>📍</div>
         <div style='font-size: 1.1rem; color: #ffffff; font-weight: 900; margin-bottom: 0.5rem; line-height: 1.4;'>
-            AV. BEIRA MAR<br>
-            Em frente ao Náutico<br>
-            Fortaleza/CE
+            SESI Parangaba<br>
+            Fortaleza - CE
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1513,13 +892,13 @@ with col3:
 # ==============================
 st.markdown("""
 <div class="form-container">
-    <h2 class="form-title">🏃 GARANTA SUA INSCRIÇÃO!</h2>
-    <div style='color: rgba(255, 255, 255, 0.95); text-align: center; margin-bottom: 3rem; font-weight: 600; letter-spacing: 2px; font-size: 1.2rem;'>
-        2ª CORRIDA NACIONAL SESI
+    <h2 class="form-title">🏃‍♂️ GARANTA SUA INSCRIÇÃO!</h2>
+    <div style='color: #ffffff; text-align: center; margin-bottom: 3rem; font-weight: 700; letter-spacing: 2px; font-size: 1.2rem;'>
+        PREPARAÇÃO GRATUITA • CORRIDA DE RUA
     </div>
 """, unsafe_allow_html=True)
 
-# Estado da sessão para mostrar caixa
+# Estado da sessão
 if 'mostrar_caixa_sucesso' not in st.session_state:
     st.session_state.mostrar_caixa_sucesso = False
 if 'numero_vip_sucesso' not in st.session_state:
@@ -1529,16 +908,16 @@ if 'mostrar_caixa_erro' not in st.session_state:
 if 'mensagem_erro' not in st.session_state:
     st.session_state.mensagem_erro = ""
 
-with st.form("cadastro_corrida"):
+with st.form("cadastro_premium"):
     col1, col2 = st.columns(2)
-
+    
     with col1:
         nome = st.text_input(
             "NOME COMPLETO *",
             placeholder="DIGITE SEU NOME",
             help="Nome para o credenciamento"
         )
-
+    
     with col2:
         cpf_input = st.text_input(
             "CPF *",
@@ -1546,7 +925,7 @@ with st.form("cadastro_corrida"):
             help="Digite 11 números (somente números)",
             max_chars=14
         )
-
+    
     setor = st.selectbox(
         "SETOR DE ATUAÇÃO *",
         [
@@ -1568,49 +947,32 @@ with st.form("cadastro_corrida"):
             "🔍 OUTROS"
         ]
     )
-
+    
     unidade = st.selectbox(
         "UNIDADE *",
         ["🏢 DILADY", "💖 FINNA", "❤️ LOVE"]
     )
-
-    # NOVOS CAMPOS OBRIGATÓRIOS
-    modalidade = st.selectbox(
-        "MODALIDADE *",
-        ["3KM", "5KM", "10KM"],
-        help="Escolha a distância que deseja percorrer"
-    )
-
-    tamanho_blusa = st.selectbox(
-        "TAMANHO DA BLUSA *",
-        ["P", "M", "G", "GG"],
-        help="Selecione o tamanho da camiseta do kit atleta"
-    )
-
+    
     telefone_input = st.text_input(
         "WHATSAPP *",
         placeholder="(85) 99999-9999",
         help="Digite números com DDD (somente números)",
         max_chars=15
     )
-
-    # ==============================
-    # CAIXAS DE MENSAGEM ACIMA DO BOTÃO
-    # ==============================
-
-    # Mostrar caixa de sucesso se ativa
+    
+    # Caixas de mensagem
     if st.session_state.mostrar_caixa_sucesso:
         st.markdown(f"""
         <div style='
             background: linear-gradient(135deg, 
-                rgba(76, 175, 80, 0.95) 0%, 
-                rgba(56, 142, 60, 0.95) 100%);
+                rgba(37, 99, 235, 0.95) 0%, 
+                rgba(59, 130, 246, 0.95) 100%);
             border-radius: 20px;
             padding: 2rem;
             margin: 2rem 0;
             border: 3px solid rgba(255, 255, 255, 0.9);
             box-shadow: 
-                0 0 60px rgba(76, 175, 80, 0.8),
+                0 0 60px rgba(59, 130, 246, 0.8),
                 0 20px 50px rgba(0, 0, 0, 0.8),
                 inset 0 0 30px rgba(255, 255, 255, 0.2);
             animation: blink 1s infinite alternate;
@@ -1618,68 +980,36 @@ with st.form("cadastro_corrida"):
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
         '>
-            <div style='font-size: 3rem; margin-bottom: 1rem; animation: iconFloat 2s infinite ease-in-out;'>🏃</div>
+            <div style='font-size: 3rem; margin-bottom: 1rem; animation: iconFloat 2s infinite ease-in-out;'>🎉</div>
             <div style='font-size: 2.2rem; font-weight: 900; color: #ffffff; margin-bottom: 1rem; text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);'>
-                ✅ INSCRIÇÃO CONFIRMADA!
+                ✅ CADASTRO CONFIRMADO!
             </div>
             <div style='font-size: 4rem; font-weight: 900; color: #ffffff; margin: 1rem 0; 
                       text-shadow: 0 0 30px rgba(255, 255, 255, 1);
-                      background: linear-gradient(45deg, #ffffff, #a5d6a7);
+                      background: linear-gradient(45deg, #ffffff, #93c5fd);
                       -webkit-background-clip: text;
                       -webkit-text-fill-color: transparent;
                       animation: vipPulse 1.5s infinite alternate;'>
-                #{st.session_state.numero_vip_sucesso}
+                Nº {st.session_state.numero_vip_sucesso}
             </div>
-            <div style='font-size: 1.5rem; color: rgba(255, 255, 255, 0.95); font-weight: 700;'>
-                2ª CORRIDA NACIONAL SESI
+            <div style='font-size: 1.5rem; color: #ffffff; font-weight: 700;'>
+                INSCRIÇÃO CONFIRMADA COM SUCESSO
             </div>
         </div>
-
-        <style>
-        @keyframes blink {{
-            0%, 100% {{ 
-                opacity: 1;
-                box-shadow: 0 0 60px rgba(76, 175, 80, 0.8);
-            }}
-            50% {{ 
-                opacity: 0.9;
-                box-shadow: 0 0 80px rgba(76, 175, 80, 1);
-            }}
-        }}
-
-        @keyframes vipPulse {{
-            0% {{ transform: scale(1); }}
-            100% {{ transform: scale(1.05); }}
-        }}
-
-        @keyframes iconFloat {{
-            0%, 100% {{ transform: translateY(0) rotate(0deg); }}
-            50% {{ transform: translateY(-10px) rotate(5deg); }}
-        }}
-        </style>
-
-        <script>
-        // Remove a caixa após 5 segundos
-        setTimeout(() => {{
-            const caixa = document.querySelector('div[style*="animation: blink"]');
-            if (caixa) caixa.style.display = 'none';
-        }}, 5000);
-        </script>
         """, unsafe_allow_html=True)
-
-    # Mostrar caixa de erro se ativa
+    
     if st.session_state.mostrar_caixa_erro:
         st.markdown(f"""
         <div style='
             background: linear-gradient(135deg, 
-                rgba(244, 67, 54, 0.95) 0%, 
-                rgba(211, 47, 47, 0.95) 100%);
+                rgba(220, 38, 38, 0.95) 0%, 
+                rgba(239, 68, 68, 0.95) 100%);
             border-radius: 20px;
             padding: 2rem;
             margin: 2rem 0;
             border: 3px solid rgba(255, 255, 255, 0.9);
             box-shadow: 
-                0 0 60px rgba(244, 67, 54, 0.8),
+                0 0 60px rgba(239, 68, 68, 0.8),
                 0 20px 50px rgba(0, 0, 0, 0.8),
                 inset 0 0 30px rgba(255, 255, 255, 0.2);
             animation: blinkRed 1s infinite alternate;
@@ -1695,104 +1025,69 @@ with st.form("cadastro_corrida"):
                 {st.session_state.mensagem_erro}
             </div>
         </div>
-
-        <style>
-        @keyframes blinkRed {{
-            0%, 100% {{ 
-                opacity: 1;
-                box-shadow: 0 0 60px rgba(244, 67, 54, 0.8);
-            }}
-            50% {{ 
-                opacity: 0.9;
-                box-shadow: 0 0 80px rgba(244, 67, 54, 1);
-            }}
-        }}
-        </style>
-
-        <script>
-        // Remove a caixa após 4 segundos
-        setTimeout(() => {{
-            const caixa = document.querySelector('div[style*="animation: blinkRed"]');
-            if (caixa) caixa.style.display = 'none';
-        }}, 4000);
-        </script>
         """, unsafe_allow_html=True)
-
-    # ==============================
-    # BOTÃO DE SUBMIT MELHORADO E MAIOR
-    # ==============================
-    col_btn = st.columns([1])
-    with col_btn[0]:
-        submitted = st.form_submit_button(
-            "🚨 CLIQUE AQUI PARA GARANTIR SUA VAGA 🚨",
-            use_container_width=True
-        )
+    
+    # Botão de submit
+    submitted = st.form_submit_button(
+        "🏃‍♂️ CLIQUE AQUI PRA FAZER SUA INSCRIÇÃO 🏃‍♀️",
+        use_container_width=True
+    )
 
 st.markdown("""
-<div style="text-align: center; margin: 1.5rem 0; padding: 1.2rem; background: rgba(255, 20, 147, 0.15); border-radius: 15px; border: 3px dashed rgba(255, 105, 180, 0.5); box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);">
-    <div style="color: #ffb6c1; font-size: 1.3rem; font-weight: 900; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px;">
+<div style="text-align: center; margin: 1.5rem 0; padding: 1.2rem; background: rgba(30, 58, 138, 0.3); border-radius: 15px; border: 3px dashed rgba(96, 165, 250, 0.5); box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);">
+    <div style="color: #ffffff; font-size: 1.3rem; font-weight: 900; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px;">
         ⚡ PREENCHA TODOS OS CAMPOS ACIMA ⚡
     </div>
-    <div style="color: rgba(255, 255, 255, 0.95); font-size: 1.1rem; font-weight: 700;">
-        E CLIQUE NO BOTÃO ABAIXO PARA FINALIZAR!
+    <div style="color: #ffffff; font-size: 1.1rem; font-weight: 700;">
+        E CLIQUE NO BOTÃO AZUL ABAIXO PARA FINALIZAR!
     </div>
+</div>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
-
 # ==============================
-# PROCESSAMENTO DO FORMULÁRIO - COM CONSULTAS ATUALIZADAS
+# PROCESSAMENTO DO FORMULÁRIO
 # ==============================
 if submitted:
-    # Limpar caixas anteriores
     st.session_state.mostrar_caixa_sucesso = False
     st.session_state.mostrar_caixa_erro = False
-
-    # ATUALIZAR DADOS DO BANCO ANTES DE PROCESSAR
-    total_banco_atual = contar_participantes(evento_atual)
-    proximo_numero_atual = obter_proximo_numero(evento_atual)
-
-    # Limpar e formatar dados
+    
+    total_banco_atual = contar_participantes()
+    proximo_numero_atual = obter_proximo_numero()
+    
     nome_limpo = nome.strip().upper() if nome else ""
     cpf_limpo = formatar_cpf(cpf_input)
     telefone_limpo = formatar_telefone(telefone_input)
-
-    # Validar campos vazios
+    
     if not nome_limpo or not cpf_limpo or not telefone_limpo:
         st.session_state.mensagem_erro = "Preencha todos os campos!"
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
-
-    # Validar CPF
+    
     elif len(cpf_limpo) != 11:
         st.session_state.mensagem_erro = f"CPF deve ter 11 números! Você digitou {len(cpf_limpo)}."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
-
-    # Validar telefone
+    
     elif len(telefone_limpo) < 10:
         st.session_state.mensagem_erro = f"Telefone deve ter pelo menos 10 números! Você digitou {len(telefone_limpo)}."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
-
-    # Verificar limite - USANDO DADOS ATUALIZADOS
-    elif total_banco_atual >= vagas_totais:
-        st.session_state.mensagem_erro = f"EVENTO ESGOTADO! Todas as {vagas_totais} vagas já foram preenchidas."
+    
+    elif total_banco_atual >= 40:
+        st.session_state.mensagem_erro = "EVENTO ESGOTADO! Todas as 40 vagas já foram preenchidas."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
-
-    # Verificar CPF duplicado - CONSULTA ATUALIZADA
-    elif verificar_cpf_existente(cpf_limpo, evento_atual):
-        st.session_state.mensagem_erro = "Este CPF já está cadastrado para este evento!"
+    
+    elif verificar_cpf_existente(cpf_limpo):
+        st.session_state.mensagem_erro = "Este CPF já está cadastrado!"
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
-
-    # Tentar cadastrar
+    
     else:
         setor_formatado = setor.split("-")[0].strip() if "-" in setor else setor.split(" ")[0]
         unidade_formatada = unidade.replace("🏢", "").replace("💖", "").replace("❤️", "").strip()
-
+        
         success, message = inserir_participante(
             nome=nome_limpo,
             cpf=cpf_limpo,
@@ -1800,16 +1095,13 @@ if submitted:
             unidade=unidade_formatada,
             telefone=telefone_limpo,
             numero_vip=proximo_numero_atual,
-            modalidade=modalidade,
-            tamanho_blusa=tamanho_blusa,
-            evento=evento_atual
+            evento="FUNCIONAL"
         )
-
+        
         if success:
             st.session_state.numero_vip_sucesso = proximo_numero_atual
             st.session_state.mostrar_caixa_sucesso = True
-
-            # Efeito visual de vibração
+            
             html("""
             <script>
             document.body.classList.add("shake");
@@ -1819,29 +1111,28 @@ if submitted:
         else:
             st.session_state.mensagem_erro = f"Erro: {message}"
             st.session_state.mostrar_caixa_erro = True
-
+    
     st.rerun()
 
 # ==============================
-# CONTADOR DE VAGAS - SEMPRE ATUALIZADO
+# CONTADOR DE VAGAS (40 VAGAS)
 # ==============================
-# CONSULTA FINAL DO BANCO
-total_final = contar_participantes(evento_atual)
-vagas_restantes = vagas_totais - total_final if total_final < vagas_totais else 0
+total_final = contar_participantes()
+vagas_restantes = 40 - total_final if total_final < 40 else 0
 
 st.markdown(f"""
-<div class="counter-container" style='text-align: center; padding: 1.5rem; 
-            background: linear-gradient(135deg, rgba(255, 20, 147, 0.3), rgba(218, 112, 214, 0.3));
+<div style='text-align: center; padding: 1.5rem; 
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.4), rgba(59, 130, 246, 0.3));
             border-radius: 20px; 
             border: 2px solid rgba(255, 255, 255, 0.4);
-            margin-top: 1rem !important;'>
+            margin-top: 1rem;'>
     <div style='font-size: 3.5rem; font-weight: 900; 
-                background: linear-gradient(45deg, #ffffff, #ffb6c1, #ffffff);
+                background: linear-gradient(45deg, #ffffff, #bfdbfe, #ffffff);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 margin-bottom: 0.5rem;
-                text-shadow: 0 0 40px rgba(255, 20, 147, 0.6);'>
-        {total_final}/{vagas_totais}
+                text-shadow: 0 0 40px rgba(59, 130, 246, 0.6);'>
+        {total_final}/40
     </div>
     <div style='color: #ffffff; 
                 font-weight: 800; 
@@ -1849,34 +1140,34 @@ st.markdown(f"""
                 text-transform: uppercase;
                 font-size: 1.2rem;
                 margin-bottom: 0.8rem;'>
-        INSCRITOS
+        INSCRIÇÕES CONFIRMADAS
     </div>
 """, unsafe_allow_html=True)
 
-if total_final >= vagas_totais:
+if total_final >= 40:
     st.markdown(f"""
-    <div style='color: #ff1493; 
+    <div style='color: #ef4444; 
                 font-size: 1.1rem; 
                 font-weight: 900;
-                background: rgba(0, 0, 0, 0.4);
+                background: rgba(0, 0, 0, 0.5);
                 padding: 0.8rem 1.5rem;
                 border-radius: 12px;
                 display: inline-block;
-                box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);
+                box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
                 animation: pulse 2s infinite;'>
-        🚫 EVENTO ESGOTADO • {total_final}/{vagas_totais}
+        🚫 EVENTO ESGOTADO • {total_final}/40
     </div>
     """, unsafe_allow_html=True)
 else:
     st.markdown(f"""
-    <div style='color: #ffb6c1; 
+    <div style='color: #93c5fd; 
                 font-size: 1rem; 
                 font-weight: 700;
-                background: rgba(0, 0, 0, 0.4);
+                background: rgba(0, 0, 0, 0.5);
                 padding: 0.8rem 1.5rem;
                 border-radius: 12px;
                 display: inline-block;
-                box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);'>
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);'>
         {vagas_restantes} VAGAS RESTANTES
     </div>
     """, unsafe_allow_html=True)
@@ -1887,28 +1178,30 @@ st.markdown("</div>", unsafe_allow_html=True)
 # RODAPÉ
 # ==============================
 st.markdown("""
-<div class="footer-container" style="text-align: center; padding: 2rem 1rem; margin-top: 1.5rem !important; 
-            border-top: 2px solid rgba(255, 105, 180, 0.5);
+<div style="text-align: center; padding: 2rem 1rem; margin-top: 1.5rem; 
+            border-top: 2px solid rgba(59, 130, 246, 0.5);
             background: rgba(0, 0, 0, 0.5);
             border-radius: 0 0 30px 30px;">
     <div style="font-size: 3rem; font-weight: 900; 
-                background: linear-gradient(45deg, #ff1493, #da70d6, #ff1493);
+                background: linear-gradient(45deg, #3b82f6, #60a5fa, #3b82f6);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 margin-bottom: 1rem;
-                text-shadow: 0 0 40px rgba(255, 20, 147, 0.7);">
-        AGYTE-SE
+                text-shadow: 0 0 40px rgba(59, 130, 246, 0.7);">
+        SESI CORRIDA
     </div>
-    <div style="color: rgba(255, 255, 255, 0.95); margin-bottom: 0.8rem; font-size: 1.4rem; font-weight: 700;">
-        2ª CORRIDA NACIONAL SESI
+    <div style="color: #ffffff; margin-bottom: 0.8rem; font-size: 1.4rem; font-weight: 700;">
+        PREPARAÇÃO GRATUITA DE CORRIDA • SESI PARANGABA
     </div>
-    <div style="color: rgba(255, 255, 255, 0.85); font-size: 1rem; letter-spacing: 2px; margin-bottom: 0.5rem;">
-        📍 AV. BEIRA MAR (em frente ao Náutico) - Fortaleza/CE
+    <div style="color: #ffffff; font-size: 1rem; letter-spacing: 2px; margin-bottom: 0.5rem;">
+        📍 SESI Parangaba - Fortaleza/CE
     </div>
-    <div style="color: rgba(255, 255, 255, 0.75); font-size: 0.9rem; letter-spacing: 1px;">
-        01 DE MAIO 2026 • LARGADA 05:45H • INSCRIÇÃO R$ 25,00
+    <div style="color: #ffffff; font-size: 0.9rem; letter-spacing: 1px;">
+        SÁBADOS 18/07 E 01/08 • 7h30 ÀS 8h30 • 40 VAGAS
+    </div>
+    <div style="color: #fbbf24; font-size: 1rem; font-weight: 700; margin-top: 0.8rem; letter-spacing: 1px;">
+        ⏰ INSCRIÇÕES ABREM 26/06 ÀS 12H NOS STORIES DO INSTAGRAM DO RH
     </div>
 </div>
+</div>
 """, unsafe_allow_html=True)
-
-st.markdown("</div>", unsafe_allow_html=True)
