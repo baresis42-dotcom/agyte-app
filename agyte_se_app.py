@@ -37,7 +37,7 @@ def get_connection():
     except:
         return None
 
-def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento="JUMP"):
+def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento="PILATES"):
     """Insere participante na tabela public.agyte_participantes"""
     try:
         conn = get_connection()
@@ -86,7 +86,7 @@ def contar_participantes():
             return 0
             
         cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) as total FROM public.agyte_participantes WHERE evento = 'JUMP'")
+        cur.execute("SELECT COUNT(*) as total FROM public.agyte_participantes WHERE evento = 'PILATES'")
         resultado = cur.fetchone()
         total = resultado[0] if resultado else 0
         
@@ -109,7 +109,7 @@ def verificar_cpf_existente(cpf):
         
         cur.execute("""
             SELECT COUNT(*) FROM public.agyte_participantes 
-            WHERE evento = 'JUMP' 
+            WHERE evento = 'PILATES' 
             AND REPLACE(REPLACE(cpf, '.', ''), '-', '') = %s
         """, (cpf_limpo,))
         
@@ -134,7 +134,7 @@ def obter_proximo_numero():
         cur.execute("""
             SELECT COALESCE(MAX(numero_vip), 0) as ultimo_numero 
             FROM public.agyte_participantes 
-            WHERE evento = 'JUMP'
+            WHERE evento = 'PILATES'
         """)
         resultado = cur.fetchone()
         ultimo_numero = resultado[0] if resultado else 0
@@ -150,26 +150,28 @@ def obter_proximo_numero():
 # CONFIGURAÇÃO DO APP
 # ==============================
 st.set_page_config(
-    page_title="AGYTE-SE | 4º ENCONTRO - JUMP",
-    page_icon="💥",
+    page_title="AGYTE-SE | 4º ENCONTRO - PILATES",
+    page_icon="🧘",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # ==============================
-# CSS COMPLETO - TEMA JUMP (LARANJA/VERMELHO VIBRANTE)
+# CSS COMPLETO - TEMA PILATES ZEN + CHAMATIVO (LAVANDA/ROXO SUAVE)
 # ==============================
 st.markdown("""
 <style>
-    /* FUNDO COM GRADIENTE LARANJA/VERMELHO */
+    /* FUNDO COM GRADIENTE LAVANDA/ROXO SUAVE E VIBRANTE */
     .stApp {
         background: 
             linear-gradient(135deg, 
-                #1a0a00 0%, 
-                #c2410c 25%, 
-                #ea580c 50%, 
-                #c2410c 75%, 
-                #1a0a00 100%);
+                #f5f3ff 0%, 
+                #ede9fe 15%, 
+                #ddd6fe 30%, 
+                #c4b5fd 50%, 
+                #ddd6fe 70%, 
+                #ede9fe 85%, 
+                #f5f3ff 100%);
         background-size: 400% 400%;
         animation: fluidGradient 12s ease infinite;
         min-height: 100vh;
@@ -186,19 +188,16 @@ st.markdown("""
         100% { background-position: 0% 50%; }
     }
     
-    /* EFEITO DE VIBRAÇÃO - PERFEITO PRA JUMP! */
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-        20%, 40%, 60%, 80% { transform: translateX(10px); }
+    /* EFEITO DE RESPIRAÇÃO */
+    @keyframes breathe {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.03); }
     }
     
-    @keyframes jumpBounce {
-        0%, 100% { transform: translateY(0); }
-        20% { transform: translateY(-30px); }
-        40% { transform: translateY(0); }
-        60% { transform: translateY(-15px); }
-        80% { transform: translateY(0); }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
     }
     
     body.shake {
@@ -207,17 +206,17 @@ st.markdown("""
     
     @keyframes pulse {
         0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+        50% { transform: scale(1.04); }
     }
     
-    @keyframes blink {
+    @keyframes zenGlow {
         0%, 100% { 
             opacity: 1;
-            box-shadow: 0 0 60px rgba(234, 88, 12, 0.8);
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.6);
         }
         50% { 
-            opacity: 0.9;
-            box-shadow: 0 0 100px rgba(249, 115, 22, 1);
+            opacity: 0.95;
+            box-shadow: 0 0 80px rgba(167, 139, 250, 0.9);
         }
     }
     
@@ -235,17 +234,22 @@ st.markdown("""
     @keyframes vipPulse {
         0% { 
             transform: scale(1);
-            text-shadow: 0 0 40px rgba(255, 255, 255, 1);
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
         }
         100% { 
-            transform: scale(1.1);
+            transform: scale(1.06);
             text-shadow: 0 0 60px rgba(255, 255, 255, 1);
         }
     }
     
     @keyframes iconFloat {
         0%, 100% { transform: translateY(0) rotate(0deg); }
-        50% { transform: translateY(-20px) rotate(5deg); }
+        50% { transform: translateY(-18px) rotate(5deg); }
+    }
+    
+    @keyframes glowPulse {
+        0%, 100% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.5); }
+        50% { box-shadow: 0 0 80px rgba(167, 139, 250, 0.8); }
     }
     
     /* LINHAS ABSTRATAS */
@@ -257,18 +261,18 @@ st.markdown("""
         height: 100%;
         pointer-events: none;
         z-index: 0;
-        opacity: 0.15;
+        opacity: 0.1;
     }
     
     .line {
         position: absolute;
-        height: 2px;
+        height: 1px;
         background: linear-gradient(90deg, 
             transparent, 
-            rgba(255, 255, 255, 0.8), 
+            rgba(139, 92, 246, 0.7), 
             transparent);
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-        animation: lineMove 20s linear infinite;
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        animation: lineMove 22s linear infinite;
     }
     
     @keyframes lineMove {
@@ -278,22 +282,22 @@ st.markdown("""
     
     /* CONTAINER PRINCIPAL */
     .main-container {
-        background: rgba(0, 0, 0, 0.75);
-        backdrop-filter: blur(35px);
-        -webkit-backdrop-filter: blur(35px);
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
         border-radius: 40px;
-        border: 2px solid rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(196, 181, 253, 0.5);
         box-shadow: 
-            0 35px 70px rgba(0, 0, 0, 0.8),
-            0 0 150px rgba(249, 115, 22, 0.3),
-            inset 0 0 80px rgba(255, 255, 255, 0.03);
+            0 25px 70px rgba(0, 0, 0, 0.1),
+            0 0 100px rgba(139, 92, 246, 0.25),
+            inset 0 0 60px rgba(255, 255, 255, 0.6);
         padding: 3rem 2rem;
         margin: 1rem;
         position: relative;
         z-index: 10;
     }
     
-    /* HEADER NOMES - ESTILO BOLINHA */
+    /* HEADER NOMES */
     .header-nomes {
         display: flex;
         justify-content: center;
@@ -307,67 +311,48 @@ st.markdown("""
     .nome-box {
         padding: 1.2rem 2.5rem;
         border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
         text-align: center;
         min-width: 180px;
     }
     
     .nome-box:hover {
-        transform: scale(1.08);
+        transform: scale(1.06);
     }
     
     .nome-sesi-box {
-        background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%);
-        border: 3px solid rgba(251, 146, 60, 0.8);
+        background: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%);
+        border: 3px solid rgba(139, 92, 246, 0.6);
         box-shadow: 
-            0 0 50px rgba(234, 88, 12, 0.6),
-            0 10px 30px rgba(0, 0, 0, 0.5),
-            inset 0 0 30px rgba(255, 255, 255, 0.1);
-        animation: glowOrange 3s infinite alternate;
-    }
-    
-    @keyframes glowOrange {
-        0% { box-shadow: 0 0 40px rgba(234, 88, 12, 0.5), 0 10px 30px rgba(0, 0, 0, 0.5); }
-        100% { box-shadow: 0 0 70px rgba(251, 146, 60, 0.8), 0 15px 40px rgba(0, 0, 0, 0.6); }
+            0 0 40px rgba(139, 92, 246, 0.4),
+            0 10px 30px rgba(0, 0, 0, 0.08);
+        animation: glowPulse 3s infinite alternate;
     }
     
     .nome-dilady-box {
-        background: linear-gradient(135deg, #9d174d 0%, #ec4899 100%);
-        border: 3px solid rgba(244, 114, 182, 0.8);
+        background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+        border: 3px solid rgba(236, 72, 153, 0.6);
         box-shadow: 
-            0 0 50px rgba(236, 72, 153, 0.6),
-            0 10px 30px rgba(0, 0, 0, 0.5),
-            inset 0 0 30px rgba(255, 255, 255, 0.1);
-        animation: glowPink 3s infinite alternate;
-    }
-    
-    @keyframes glowPink {
-        0% { box-shadow: 0 0 40px rgba(236, 72, 153, 0.5), 0 10px 30px rgba(0, 0, 0, 0.5); }
-        100% { box-shadow: 0 0 70px rgba(244, 114, 182, 0.8), 0 15px 40px rgba(0, 0, 0, 0.6); }
+            0 0 40px rgba(236, 72, 153, 0.4),
+            0 10px 30px rgba(0, 0, 0, 0.08);
     }
     
     .nome-sesi {
         font-size: 2.2rem;
         font-weight: 900;
-        color: #ffffff;
+        color: #6d28d9;
         letter-spacing: 8px;
-        text-shadow: 
-            0 0 20px rgba(255, 255, 255, 0.8),
-            0 0 40px rgba(249, 115, 22, 0.8),
-            0 0 80px rgba(249, 115, 22, 0.5);
+        text-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
         font-family: 'Arial Black', 'Impact', sans-serif;
     }
     
     .nome-dilady {
         font-size: 2.2rem;
         font-weight: 900;
-        color: #ffffff;
+        color: #be185d;
         letter-spacing: 4px;
-        text-shadow: 
-            0 0 20px rgba(255, 255, 255, 0.8),
-            0 0 40px rgba(236, 72, 153, 0.8),
-            0 0 80px rgba(236, 72, 153, 0.5);
+        text-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
         font-family: 'Georgia', 'Times New Roman', serif;
         font-style: italic;
     }
@@ -377,7 +362,7 @@ st.markdown("""
         width: 220px;
         height: 220px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #ea580c 0%, #f97316 40%, #fb923c 70%, #fdba74 100%);
+        background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 30%, #8b5cf6 70%, #7c3aed 100%);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -385,30 +370,14 @@ st.markdown("""
         text-align: center;
         padding: 1.5rem;
         box-shadow: 
-            0 10px 30px rgba(234, 88, 12, 0.5),
-            0 0 80px rgba(249, 115, 22, 0.6),
-            0 0 100px rgba(251, 146, 60, 0.3),
-            inset 0 0 40px rgba(255, 255, 255, 0.2);
-        border: 3px solid rgba(255, 255, 255, 0.4);
+            0 10px 35px rgba(139, 92, 246, 0.4),
+            0 0 80px rgba(167, 139, 250, 0.6),
+            inset 0 0 50px rgba(255, 255, 255, 0.4);
+        border: 4px solid rgba(255, 255, 255, 0.8);
         position: relative;
         overflow: hidden;
-        animation: circlePulse 4s infinite alternate;
+        animation: breathe 5s infinite ease-in-out, glowPulse 3s infinite alternate;
         margin: 0 auto;
-    }
-    
-    @keyframes circlePulse {
-        0% { 
-            transform: scale(1);
-            box-shadow: 0 10px 30px rgba(234, 88, 12, 0.5),
-                        0 0 80px rgba(249, 115, 22, 0.6),
-                        0 0 100px rgba(251, 146, 60, 0.3);
-        }
-        100% { 
-            transform: scale(1.08);
-            box-shadow: 0 20px 50px rgba(234, 88, 12, 0.7),
-                        0 0 120px rgba(249, 115, 22, 0.9),
-                        0 0 150px rgba(251, 146, 60, 0.5);
-        }
     }
     
     .circle-header::before {
@@ -417,7 +386,7 @@ st.markdown("""
         width: 100%;
         height: 100%;
         border-radius: 50%;
-        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
         animation: circleRotate 10s linear infinite;
     }
     
@@ -427,27 +396,27 @@ st.markdown("""
     }
     
     .circle-header .programa {
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 800;
         color: white;
         text-transform: uppercase;
-        letter-spacing: 3px;
+        letter-spacing: 4px;
         margin-bottom: 0.3rem;
-        text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
         position: relative;
         z-index: 1;
     }
     
     .circle-header .title {
-        font-size: clamp(1.5rem, 5vw, 1.9rem);
+        font-size: clamp(1.5rem, 5vw, 2rem);
         font-weight: 900;
         color: white;
         margin: 0.2rem 0;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 2px;
         text-shadow: 
-            0 0 20px rgba(255, 255, 255, 1),
-            0 0 40px rgba(249, 115, 22, 0.8);
+            0 0 25px rgba(255, 255, 255, 1),
+            0 0 50px rgba(196, 181, 253, 0.8);
         position: relative;
         z-index: 1;
         line-height: 1.1;
@@ -457,8 +426,8 @@ st.markdown("""
         font-size: 0.85rem;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.95);
-        letter-spacing: 2px;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+        letter-spacing: 3px;
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
         position: relative;
         z-index: 1;
         margin-top: 0.3rem;
@@ -468,41 +437,41 @@ st.markdown("""
     .event-badge {
         display: inline-block;
         background: linear-gradient(45deg, 
-            rgba(234, 88, 12, 0.9), 
-            rgba(249, 115, 22, 0.7));
+            rgba(139, 92, 246, 0.9), 
+            rgba(167, 139, 250, 0.8));
         color: white;
         padding: 1.2rem 3rem;
         border-radius: 50px;
         font-weight: 900;
-        letter-spacing: 4px;
+        letter-spacing: 3px;
         margin-top: 1.5rem;
         text-transform: uppercase;
-        font-size: 1.2rem;
+        font-size: 1.15rem;
         border: 3px solid rgba(255, 255, 255, 0.7);
         box-shadow: 
-            0 0 60px rgba(234, 88, 12, 0.8),
-            0 0 80px rgba(249, 115, 22, 0.5),
-            0 20px 50px rgba(0, 0, 0, 0.7);
+            0 0 60px rgba(139, 92, 246, 0.7),
+            0 0 100px rgba(167, 139, 250, 0.4),
+            0 20px 50px rgba(0, 0, 0, 0.12);
         animation: badgeFloat 4s infinite ease-in-out;
     }
     
     @keyframes badgeFloat {
         0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-8px) scale(1.03); }
+        50% { transform: translateY(-10px) scale(1.03); }
     }
     
     /* FORMULÁRIO PREMIUM */
     .form-container {
-        background: rgba(0, 0, 0, 0.85);
+        background: rgba(255, 255, 255, 0.85);
         border-radius: 30px;
         padding: 3rem;
         margin: 2rem auto;
         max-width: 800px;
-        border: 2px solid rgba(249, 115, 22, 0.5);
+        border: 2px solid rgba(196, 181, 253, 0.5);
         box-shadow: 
-            0 30px 80px rgba(0, 0, 0, 1),
-            0 0 120px rgba(234, 88, 12, 0.4),
-            inset 0 0 60px rgba(255, 255, 255, 0.03);
+            0 25px 70px rgba(0, 0, 0, 0.08),
+            0 0 100px rgba(139, 92, 246, 0.3),
+            inset 0 0 60px rgba(255, 255, 255, 0.7);
         position: relative;
         overflow: hidden;
     }
@@ -516,11 +485,11 @@ st.markdown("""
         height: 200%;
         background: conic-gradient(
             from 0deg at 50% 50%,
-            rgba(234, 88, 12, 0.08) 0deg,
-            rgba(249, 115, 22, 0.08) 90deg,
-            rgba(251, 146, 60, 0.08) 180deg,
-            rgba(234, 88, 12, 0.08) 270deg,
-            rgba(234, 88, 12, 0.08) 360deg
+            rgba(139, 92, 246, 0.06) 0deg,
+            rgba(167, 139, 250, 0.06) 90deg,
+            rgba(196, 181, 253, 0.06) 180deg,
+            rgba(139, 92, 246, 0.06) 270deg,
+            rgba(139, 92, 246, 0.06) 360deg
         );
         animation: formRotate 20s linear infinite;
         z-index: -1;
@@ -532,17 +501,15 @@ st.markdown("""
     }
     
     .form-title {
-        color: #ffffff;
+        color: #5b21b6;
         font-size: 2.5rem;
         text-align: center;
         margin-bottom: 1.5rem;
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 3px;
-        text-shadow: 
-            0 0 40px rgba(249, 115, 22, 0.9),
-            0 0 80px rgba(251, 146, 60, 0.3);
-        background: linear-gradient(45deg, #ffffff, #fed7aa);
+        text-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+        background: linear-gradient(45deg, #7c3aed, #a78bfa);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         position: relative;
@@ -552,15 +519,15 @@ st.markdown("""
     /* INPUTS PREMIUM */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
-        background: rgba(0, 0, 0, 0.9) !important;
-        border: 2px solid rgba(249, 115, 22, 0.6) !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 2px solid rgba(167, 139, 250, 0.6) !important;
         border-radius: 15px !important;
         padding: 1.2rem !important;
         font-size: 1.2rem !important;
-        color: #ffffff !important;
+        color: #4c1d95 !important;
         box-shadow: 
-            inset 0 0 30px rgba(249, 115, 22, 0.1),
-            0 0 30px rgba(234, 88, 12, 0.3) !important;
+            inset 0 0 25px rgba(139, 92, 246, 0.1),
+            0 0 25px rgba(139, 92, 246, 0.2) !important;
         transition: all 0.3s ease !important;
         position: relative;
         z-index: 2;
@@ -568,34 +535,36 @@ st.markdown("""
     
     .stTextInput > div > div > input:focus,
     .stSelectbox > div > div > select:focus {
-        border-color: #fb923c !important;
+        border-color: #8b5cf6 !important;
         box-shadow: 
-            inset 0 0 40px rgba(249, 115, 22, 0.2),
-            0 0 50px rgba(234, 88, 12, 0.6) !important;
-        background: rgba(0, 0, 0, 1) !important;
+            inset 0 0 35px rgba(139, 92, 246, 0.2),
+            0 0 50px rgba(139, 92, 246, 0.5) !important;
+        background: rgba(255, 255, 255, 1) !important;
         transform: scale(1.02);
     }
     
     .stTextInput label,
     .stSelectbox label {
-        color: #ffffff !important;
+        color: #5b21b6 !important;
         font-weight: 800 !important;
         font-size: 1.1rem !important;
         text-transform: uppercase !important;
         letter-spacing: 2px !important;
         margin-bottom: 0.8rem !important;
-        text-shadow: 0 0 20px rgba(249, 115, 22, 0.8);
+        text-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
         position: relative;
         z-index: 2;
     }
     
-    /* BOTÃO PREMIUM - ESTILO JUMP */
+    /* BOTÃO PREMIUM - ROXO VIBRANTE */
     .stButton button {
         background: linear-gradient(45deg, 
-            #ea580c 0%, 
-            #f97316 50%, 
-            #ea580c 100%) !important;
-        background-size: 200% 100% !important;
+            #7c3aed 0%, 
+            #8b5cf6 30%,
+            #a78bfa 50%, 
+            #8b5cf6 70%,
+            #7c3aed 100%) !important;
+        background-size: 300% 100% !important;
         color: white !important;
         border: 4px solid rgba(255, 255, 255, 0.9) !important;
         border-radius: 25px !important;
@@ -608,10 +577,11 @@ st.markdown("""
         width: 100% !important;
         margin-top: 2rem !important;
         box-shadow: 
-            0 0 120px rgba(249, 115, 22, 1),
-            0 30px 90px rgba(0, 0, 0, 0.9),
-            inset 0 0 50px rgba(255, 255, 255, 0.4) !important;
-        animation: buttonPulse 1.2s infinite alternate, buttonShine 3s infinite;
+            0 0 80px rgba(139, 92, 246, 0.8),
+            0 0 120px rgba(167, 139, 250, 0.5),
+            0 25px 70px rgba(0, 0, 0, 0.15),
+            inset 0 0 50px rgba(255, 255, 255, 0.35) !important;
+        animation: breathe 3s infinite ease-in-out, buttonShine 4s infinite;
         position: relative;
         overflow: hidden;
         z-index: 2;
@@ -621,17 +591,12 @@ st.markdown("""
     }
     
     .stButton button:hover {
-        transform: scale(1.08) !important;
+        transform: scale(1.06) !important;
         box-shadow: 
-            0 0 150px rgba(251, 146, 60, 1),
-            0 35px 110px rgba(0, 0, 0, 1),
+            0 0 120px rgba(167, 139, 250, 1),
+            0 0 160px rgba(196, 181, 253, 0.7),
+            0 30px 80px rgba(0, 0, 0, 0.2),
             inset 0 0 60px rgba(255, 255, 255, 0.5) !important;
-        animation: jumpBounce 0.6s ease !important;
-    }
-    
-    @keyframes buttonPulse {
-        0% { transform: scale(1); }
-        100% { transform: scale(1.05); }
     }
     
     @keyframes buttonShine {
@@ -639,19 +604,18 @@ st.markdown("""
         50% { background-position: 100% 50%; }
     }
     
-    /* TEXTOS AUXILIARES - BRANCOS PARA LEGIBILIDADE */
-    .texto-branco {
-        color: #ffffff !important;
-        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    /* TEXTOS */
+    .texto-roxo {
+        color: #5b21b6 !important;
     }
     
     .texto-destaque {
-        color: #fbbf24 !important;
+        color: #7c3aed !important;
         font-weight: 800 !important;
     }
     
-    .texto-laranja-claro {
-        color: #fed7aa !important;
+    .texto-lavanda {
+        color: #8b5cf6 !important;
         font-weight: 700 !important;
     }
     
@@ -738,11 +702,11 @@ st.markdown("""
 # ==============================
 st.markdown("""
 <div class="abstract-lines">
-    <div class="line" style="top: 12%; width: 350px; animation-delay: 0s; animation-duration: 25s;"></div>
-    <div class="line" style="top: 38%; width: 450px; animation-delay: 4s; animation-duration: 22s;"></div>
-    <div class="line" style="top: 62%; width: 400px; animation-delay: 8s; animation-duration: 28s;"></div>
-    <div class="line" style="top: 88%; width: 300px; animation-delay: 12s; animation-duration: 20s;"></div>
-    <div class="line" style="top: 28%; width: 250px; animation-delay: 16s; animation-duration: 24s;"></div>
+    <div class="line" style="top: 12%; width: 350px; animation-delay: 0s; animation-duration: 28s;"></div>
+    <div class="line" style="top: 38%; width: 450px; animation-delay: 5s; animation-duration: 24s;"></div>
+    <div class="line" style="top: 62%; width: 400px; animation-delay: 10s; animation-duration: 30s;"></div>
+    <div class="line" style="top: 88%; width: 300px; animation-delay: 15s; animation-duration: 26s;"></div>
+    <div class="line" style="top: 28%; width: 250px; animation-delay: 20s; animation-duration: 32s;"></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -762,15 +726,15 @@ st.markdown("""
     <div class="circle-header">
         <div class="programa">4º ENCONTRO</div>
         <div class="title">AGYTE-SE</div>
-        <div class="subtitle">💥 JUMP 💥</div>
+        <div class="subtitle">🧘 PILATES 🧘</div>
     </div>
     <div style="text-align: center;">
         <div class="event-badge">
-            💥 PULE COM A GENTE! 💥
+            🧘 RESPIRE · ALONGUE · CONECTE-SE 🧘
         </div>
     </div>
-    <div style="margin-top: 2rem; color: #ffffff; font-size: 1.3rem; font-weight: 700; max-width: 700px; margin-left: auto; margin-right: auto; padding: 0 1rem; text-align: center;">
-        Chegou o 4º Encontro do AGYTE-SE! Escolha sua modalidade e garanta sua vaga!
+    <div style="margin-top: 2rem; color: #5b21b6; font-size: 1.3rem; font-weight: 700; max-width: 700px; margin-left: auto; margin-right: auto; padding: 0 1rem; text-align: center;">
+        Chegou o 4º Encontro do AGYTE-SE! Um momento de paz, alongamento e conexão com seu corpo.
     </div>
 """, unsafe_allow_html=True)
 
@@ -779,51 +743,38 @@ st.markdown("""
 # ==============================
 st.markdown("""
     <div style='text-align: center; margin: 3rem 0;'>
-        <div style='background: rgba(120, 45, 18, 0.4); 
+        <div style='background: rgba(255, 255, 255, 0.75); 
                     border-radius: 25px; 
                     padding: 2rem;
-                    border: 2px solid rgba(251, 146, 60, 0.5);
+                    border: 2px solid rgba(196, 181, 253, 0.5);
                     backdrop-filter: blur(15px);
-                    box-shadow: 0 0 60px rgba(249, 115, 22, 0.3);'>
-            <h2 style='color: #ffffff; margin-bottom: 1.5rem; font-size: 2.2rem; text-shadow: 0 0 20px rgba(249, 115, 22, 0.5);'>
-                💥 4º ENCONTRO DO AGYTE-SE
+                    box-shadow: 0 0 60px rgba(139, 92, 246, 0.3);'>
+            <h2 style='color: #5b21b6; margin-bottom: 1.5rem; font-size: 2.2rem; text-shadow: 0 0 20px rgba(139, 92, 246, 0.4);'>
+                🧘 4º ENCONTRO DO AGYTE-SE
             </h2>
-            <div style='color: #ffffff; font-size: 1.2rem; line-height: 1.6; padding: 0 1rem;'>
+            <div style='color: #4c1d95; font-size: 1.2rem; line-height: 1.6; padding: 0 1rem;'>
                 <div style='margin-bottom: 1rem;'>
-                    📅 <span style='color: #fed7aa; font-weight: 700;'>Data:</span> 14 de Agosto
+                    📅 <span style='color: #7c3aed; font-weight: 700;'>Data:</span> 14 de Agosto
                 </div>
                 <div style='margin-bottom: 1rem;'>
-                    ⏰ <span style='color: #fed7aa; font-weight: 700;'>Horário:</span> 18h00
+                    ⏰ <span style='color: #7c3aed; font-weight: 700;'>Horário:</span> 18h00
                 </div>
                 <div style='margin-bottom: 1rem;'>
-                    📍 <span style='color: #fed7aa; font-weight: 700;'>Local:</span> SENAI Parangaba
+                    📍 <span style='color: #7c3aed; font-weight: 700;'>Local:</span> SENAI Parangaba
                 </div>
                 <div style='margin-bottom: 1.5rem;'>
-                    💥 <span style='color: #fed7aa; font-weight: 900;'>Modalidade:</span> JUMP - 30 vagas
+                    🧘 <span style='color: #7c3aed; font-weight: 900;'>Modalidade:</span> PILATES - 40 vagas
                 </div>
-                <div style='margin-top: 1rem; color: #fbbf24; font-weight: 800; font-size: 1.3rem;'>
-                    ⏰ <span style='background: rgba(0,0,0,0.5); padding: 3px 12px; border-radius: 8px;'>INSCRIÇÕES: 11/08 às 12h</span>
+                <div style='margin-top: 1rem; color: #7c3aed; font-weight: 800; font-size: 1.3rem;'>
+                    ⏰ <span style='background: rgba(139, 92, 246, 0.2); padding: 3px 12px; border-radius: 8px;'>INSCRIÇÕES: 12/08 às 12h</span>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <div style='text-align: center; margin: 2rem 0;'>
-        <div style='background: rgba(0, 0, 0, 0.5); 
-                    border-radius: 20px; 
-                    padding: 1.5rem;
-                    border: 2px dashed rgba(251, 146, 60, 0.5);
-                    backdrop-filter: blur(15px);'>
-            <div style='color: #fed7aa; font-size: 1.1rem; font-weight: 700;'>
-                🧘 <span style='color: #ffffff;'>Pilates também disponível!</span> 
-                (40 vagas - Inscrições em 12/08 às 12h)
             </div>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
 # ==============================
-# CONTADORES PREMIUM (30 VAGAS)
+# CONTADORES PREMIUM (40 VAGAS)
 # ==============================
 total_banco_atual = contar_participantes()
 proximo_numero_atual = obter_proximo_numero()
@@ -832,22 +783,22 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown(f"""
-    <div style='background: rgba(0, 0, 0, 0.7); 
+    <div style='background: rgba(255, 255, 255, 0.8); 
                 border-radius: 25px; 
                 padding: 2rem; 
                 text-align: center;
-                border: 2px solid rgba(249, 115, 22, 0.5);
-                backdrop-filter: blur(15px);
-                box-shadow: 0 0 50px rgba(249, 115, 22, 0.4);
+                border: 2px solid rgba(196, 181, 253, 0.5);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
                 height: 100%;'>
         <div style='font-size: 4rem; 
                     font-weight: 900; 
-                    color: #ffffff;
-                    text-shadow: 0 0 30px #f97316;
+                    color: #5b21b6;
+                    text-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
                     margin-bottom: 0.8rem;'>
-            {total_banco_atual}/30
+            {total_banco_atual}/40
         </div>
-        <div style='color: #fed7aa; 
+        <div style='color: #7c3aed; 
                     font-size: 1.2rem; 
                     text-transform: uppercase; 
                     letter-spacing: 3px;
@@ -859,41 +810,41 @@ with col1:
 
 with col2:
     st.markdown("""
-    <div style='background: rgba(0, 0, 0, 0.7); 
+    <div style='background: rgba(255, 255, 255, 0.8); 
                 border-radius: 25px; 
                 padding: 2rem; 
                 text-align: center;
-                border: 2px solid rgba(251, 146, 60, 0.5);
-                backdrop-filter: blur(15px);
-                box-shadow: 0 0 50px rgba(251, 146, 60, 0.4);
+                border: 2px solid rgba(196, 181, 253, 0.5);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
                 height: 100%;'>
-        <div style='font-size: 3rem; color: #ffffff; margin-bottom: 1rem;'>💥</div>
-        <div style='font-size: 1.2rem; color: #ffffff; font-weight: 900; margin-bottom: 0.5rem; line-height: 1.6;'>
+        <div style='font-size: 3rem; color: #5b21b6; margin-bottom: 1rem;'>🧘</div>
+        <div style='font-size: 1.2rem; color: #4c1d95; font-weight: 900; margin-bottom: 0.5rem; line-height: 1.6;'>
             MODALIDADE<br>
-            JUMP
+            PILATES
         </div>
-        <div style='color: #fed7aa; font-size: 1.5rem; font-weight: 700;'>
-            30 VAGAS
+        <div style='color: #7c3aed; font-size: 1.5rem; font-weight: 700;'>
+            40 VAGAS
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown("""
-    <div style='background: rgba(0, 0, 0, 0.7); 
+    <div style='background: rgba(255, 255, 255, 0.8); 
                 border-radius: 25px; 
                 padding: 2rem; 
                 text-align: center;
-                border: 2px solid rgba(253, 186, 116, 0.5);
-                backdrop-filter: blur(15px);
-                box-shadow: 0 0 50px rgba(253, 186, 116, 0.4);
+                border: 2px solid rgba(196, 181, 253, 0.5);
+                backdrop-filter: blur(10px);
+                box-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
                 height: 100%;'>
-        <div style='font-size: 3rem; color: #ffffff; margin-bottom: 1rem;'>📍</div>
-        <div style='font-size: 1.1rem; color: #ffffff; font-weight: 900; margin-bottom: 0.5rem; line-height: 1.4;'>
+        <div style='font-size: 3rem; color: #5b21b6; margin-bottom: 1rem;'>📍</div>
+        <div style='font-size: 1.1rem; color: #4c1d95; font-weight: 900; margin-bottom: 0.5rem; line-height: 1.4;'>
             SENAI Parangaba<br>
             Fortaleza - CE
         </div>
-        <div style='color: #fed7aa; font-size: 1.2rem; font-weight: 700;'>
+        <div style='color: #7c3aed; font-size: 1.2rem; font-weight: 700;'>
             14/08 • 18h
         </div>
     </div>
@@ -904,9 +855,9 @@ with col3:
 # ==============================
 st.markdown("""
 <div class="form-container">
-    <h2 class="form-title">💥 GARANTA SUA VAGA NO JUMP!</h2>
-    <div style='color: #ffffff; text-align: center; margin-bottom: 3rem; font-weight: 700; letter-spacing: 2px; font-size: 1.2rem;'>
-        4º ENCONTRO AGYTE-SE • 30 VAGAS
+    <h2 class="form-title">🧘 GARANTA SUA VAGA NO PILATES!</h2>
+    <div style='color: #5b21b6; text-align: center; margin-bottom: 3rem; font-weight: 700; letter-spacing: 2px; font-size: 1.2rem;'>
+        4º ENCONTRO AGYTE-SE • 40 VAGAS
     </div>
 """, unsafe_allow_html=True)
 
@@ -938,7 +889,7 @@ with st.form("cadastro_premium"):
             max_chars=14
         )
     
-    # SETOR AGORA É LIVRE (TEXT INPUT)
+    # SETOR LIVRE (TEXT INPUT)
     setor = st.text_input(
         "SETOR DE ATUAÇÃO",
         placeholder="Ex: TI, Comercial, Produção... (opcional)",
@@ -962,35 +913,32 @@ with st.form("cadastro_premium"):
         st.markdown(f"""
         <div style='
             background: linear-gradient(135deg, 
-                rgba(234, 88, 12, 0.95) 0%, 
-                rgba(249, 115, 22, 0.95) 100%);
+                rgba(139, 92, 246, 0.95) 0%, 
+                rgba(167, 139, 250, 0.95) 100%);
             border-radius: 20px;
             padding: 2rem;
             margin: 2rem 0;
             border: 3px solid rgba(255, 255, 255, 0.9);
             box-shadow: 
-                0 0 60px rgba(249, 115, 22, 0.8),
-                0 20px 50px rgba(0, 0, 0, 0.8),
-                inset 0 0 30px rgba(255, 255, 255, 0.2);
-            animation: blink 1s infinite alternate;
+                0 0 60px rgba(139, 92, 246, 0.8),
+                0 20px 50px rgba(0, 0, 0, 0.15),
+                inset 0 0 30px rgba(255, 255, 255, 0.3);
+            animation: zenGlow 2s infinite alternate;
             text-align: center;
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
         '>
-            <div style='font-size: 3rem; margin-bottom: 1rem; animation: jumpBounce 1s infinite;'>💥</div>
+            <div style='font-size: 3rem; margin-bottom: 1rem; animation: iconFloat 3s infinite ease-in-out;'>🧘</div>
             <div style='font-size: 2.2rem; font-weight: 900; color: #ffffff; margin-bottom: 1rem; text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);'>
                 ✅ INSCRIÇÃO CONFIRMADA!
             </div>
             <div style='font-size: 4rem; font-weight: 900; color: #ffffff; margin: 1rem 0; 
                       text-shadow: 0 0 30px rgba(255, 255, 255, 1);
-                      background: linear-gradient(45deg, #ffffff, #fed7aa);
-                      -webkit-background-clip: text;
-                      -webkit-text-fill-color: transparent;
-                      animation: vipPulse 1.5s infinite alternate;'>
+                      animation: vipPulse 2s infinite alternate;'>
                 Nº {st.session_state.numero_vip_sucesso}
             </div>
             <div style='font-size: 1.5rem; color: #ffffff; font-weight: 700;'>
-                VAGA GARANTIDA NO JUMP! 💥
+                VAGA GARANTIDA NO PILATES! 🧘
             </div>
             <div style='font-size: 1.1rem; color: #ffffff; margin-top: 0.5rem;'>
                 14/08 • 18h • SENAI Parangaba
@@ -1029,17 +977,17 @@ with st.form("cadastro_premium"):
     
     # Botão de submit
     submitted = st.form_submit_button(
-        "💥 CLIQUE AQUI PRA GARANTIR SUA VAGA NO JUMP! 💥",
+        "🧘 CLIQUE AQUI PRA GARANTIR SUA VAGA NO PILATES! 🧘",
         use_container_width=True
     )
 
 st.markdown("""
-<div style="text-align: center; margin: 1.5rem 0; padding: 1.2rem; background: rgba(120, 45, 18, 0.3); border-radius: 15px; border: 3px dashed rgba(251, 146, 60, 0.5); box-shadow: 0 0 30px rgba(249, 115, 22, 0.3);">
-    <div style="color: #ffffff; font-size: 1.3rem; font-weight: 900; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px;">
+<div style="text-align: center; margin: 1.5rem 0; padding: 1.2rem; background: rgba(196, 181, 253, 0.25); border-radius: 15px; border: 3px dashed rgba(139, 92, 246, 0.5); box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);">
+    <div style="color: #5b21b6; font-size: 1.3rem; font-weight: 900; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px;">
         ⚡ PREENCHA TODOS OS CAMPOS ACIMA ⚡
     </div>
-    <div style="color: #ffffff; font-size: 1.1rem; font-weight: 700;">
-        E CLIQUE NO BOTÃO LARANJA PARA FINALIZAR!
+    <div style="color: #4c1d95; font-size: 1.1rem; font-weight: 700;">
+        E CLIQUE NO BOTÃO ROXO PARA FINALIZAR!
     </div>
 </div>
 </div>
@@ -1075,13 +1023,13 @@ if submitted:
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
-    elif total_banco_atual >= 30:
-        st.session_state.mensagem_erro = "VAGAS ESGOTADAS! Todas as 30 vagas do JUMP já foram preenchidas."
+    elif total_banco_atual >= 40:
+        st.session_state.mensagem_erro = "VAGAS ESGOTADAS! Todas as 40 vagas do PILATES já foram preenchidas."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
     elif verificar_cpf_existente(cpf_limpo):
-        st.session_state.mensagem_erro = "Este CPF já está cadastrado no JUMP!"
+        st.session_state.mensagem_erro = "Este CPF já está cadastrado no PILATES!"
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
@@ -1095,7 +1043,7 @@ if submitted:
             unidade=unidade_formatada,
             telefone=telefone_limpo,
             numero_vip=proximo_numero_atual,
-            evento="JUMP"
+            evento="PILATES"
         )
         
         if success:
@@ -1115,26 +1063,24 @@ if submitted:
     st.rerun()
 
 # ==============================
-# CONTADOR DE VAGAS (30 VAGAS)
+# CONTADOR DE VAGAS (40 VAGAS)
 # ==============================
 total_final = contar_participantes()
-vagas_restantes = 30 - total_final if total_final < 30 else 0
+vagas_restantes = 40 - total_final if total_final < 40 else 0
 
 st.markdown(f"""
 <div style='text-align: center; padding: 1.5rem; 
-            background: linear-gradient(135deg, rgba(120, 45, 18, 0.4), rgba(234, 88, 12, 0.3));
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(196, 181, 253, 0.4));
             border-radius: 20px; 
-            border: 2px solid rgba(255, 255, 255, 0.4);
+            border: 2px solid rgba(196, 181, 253, 0.5);
             margin-top: 1rem;'>
     <div style='font-size: 3.5rem; font-weight: 900; 
-                background: linear-gradient(45deg, #ffffff, #fed7aa, #ffffff);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                margin-bottom: 0.5rem;
-                text-shadow: 0 0 40px rgba(249, 115, 22, 0.6);'>
-        {total_final}/30
+                color: #5b21b6;
+                text-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+                margin-bottom: 0.5rem;'>
+        {total_final}/40
     </div>
-    <div style='color: #ffffff; 
+    <div style='color: #4c1d95; 
                 font-weight: 800; 
                 letter-spacing: 3px;
                 text-transform: uppercase;
@@ -1144,30 +1090,30 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-if total_final >= 30:
+if total_final >= 40:
     st.markdown(f"""
     <div style='color: #ef4444; 
                 font-size: 1.1rem; 
                 font-weight: 900;
-                background: rgba(0, 0, 0, 0.5);
+                background: rgba(255, 255, 255, 0.8);
                 padding: 0.8rem 1.5rem;
                 border-radius: 12px;
                 display: inline-block;
-                box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
                 animation: pulse 2s infinite;'>
-        🚫 VAGAS ESGOTADAS • {total_final}/30
+        🚫 VAGAS ESGOTADAS • {total_final}/40
     </div>
     """, unsafe_allow_html=True)
 else:
     st.markdown(f"""
-    <div style='color: #fed7aa; 
+    <div style='color: #7c3aed; 
                 font-size: 1rem; 
                 font-weight: 700;
-                background: rgba(0, 0, 0, 0.5);
+                background: rgba(255, 255, 255, 0.8);
                 padding: 0.8rem 1.5rem;
                 border-radius: 12px;
                 display: inline-block;
-                box-shadow: 0 0 15px rgba(249, 115, 22, 0.4);'>
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);'>
         {vagas_restantes} VAGAS RESTANTES
     </div>
     """, unsafe_allow_html=True)
@@ -1179,31 +1125,26 @@ st.markdown("</div>", unsafe_allow_html=True)
 # ==============================
 st.markdown("""
 <div style="text-align: center; padding: 2rem 1rem; margin-top: 1.5rem; 
-            border-top: 2px solid rgba(249, 115, 22, 0.5);
-            background: rgba(0, 0, 0, 0.5);
+            border-top: 2px solid rgba(196, 181, 253, 0.5);
+            background: rgba(255, 255, 255, 0.7);
             border-radius: 0 0 30px 30px;">
     <div style="font-size: 3rem; font-weight: 900; 
-                background: linear-gradient(45deg, #ea580c, #f97316, #ea580c);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                margin-bottom: 1rem;
-                text-shadow: 0 0 40px rgba(249, 115, 22, 0.7);">
-        AGYTE-SE JUMP
+                color: #7c3aed;
+                text-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+                margin-bottom: 1rem;">
+        AGYTE-SE PILATES
     </div>
-    <div style="color: #ffffff; margin-bottom: 0.8rem; font-size: 1.4rem; font-weight: 700;">
-        4º ENCONTRO • 💥 JUMP • SENAI PARANGABA
+    <div style="color: #5b21b6; margin-bottom: 0.8rem; font-size: 1.4rem; font-weight: 700;">
+        4º ENCONTRO • 🧘 PILATES • SENAI PARANGABA
     </div>
-    <div style="color: #ffffff; font-size: 1rem; letter-spacing: 2px; margin-bottom: 0.5rem;">
+    <div style="color: #4c1d95; font-size: 1rem; letter-spacing: 2px; margin-bottom: 0.5rem;">
         📍 SENAI Parangaba - Fortaleza/CE
     </div>
-    <div style="color: #ffffff; font-size: 0.9rem; letter-spacing: 1px;">
-        14 DE AGOSTO • 18H00 • 30 VAGAS
+    <div style="color: #4c1d95; font-size: 0.9rem; letter-spacing: 1px;">
+        14 DE AGOSTO • 18H00 • 40 VAGAS
     </div>
-    <div style="color: #fbbf24; font-size: 1rem; font-weight: 700; margin-top: 0.8rem; letter-spacing: 1px;">
-        ⏰ INSCRIÇÕES ABREM 11/08 ÀS 12H
-    </div>
-    <div style="color: #fed7aa; font-size: 0.9rem; margin-top: 0.5rem;">
-        🧘 Pilates: 40 vagas • Inscrições 12/08 às 12h
+    <div style="color: #7c3aed; font-size: 1rem; font-weight: 700; margin-top: 0.8rem; letter-spacing: 1px;">
+        ⏰ INSCRIÇÕES ABREM 12/08 ÀS 12H
     </div>
 </div>
 </div>
