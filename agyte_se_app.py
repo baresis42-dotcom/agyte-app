@@ -7,9 +7,6 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
 
-# ==============================
-# FUNÇÕES DE FORMATAÇÃO E VALIDAÇÃO
-# ==============================
 def formatar_cpf(cpf):
     """Remove caracteres não numéricos do CPF"""
     if not cpf:
@@ -146,9 +143,6 @@ def obter_proximo_numero():
         print(f"Erro ao obter próximo número: {e}")
         return 1
 
-# ==============================
-# CONFIGURAÇÃO DO APP
-# ==============================
 st.set_page_config(
     page_title="AGYTE-SE | 4º ENCONTRO - PILATES",
     page_icon="🧘",
@@ -156,9 +150,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ==============================
-# CSS COMPLETO - TEMA PILATES ZEN + CHAMATIVO (LAVANDA/ROXO SUAVE)
-# ==============================
 st.markdown("""
 <style>
     /* FUNDO COM GRADIENTE LAVANDA/ROXO SUAVE E VIBRANTE */
@@ -697,9 +688,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ==============================
-# LINHAS ABSTRATAS
-# ==============================
 st.markdown("""
 <div class="abstract-lines">
     <div class="line" style="top: 12%; width: 350px; animation-delay: 0s; animation-duration: 28s;"></div>
@@ -710,9 +698,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ==============================
-# CABEÇALHO PRINCIPAL
-# ==============================
 st.markdown("""
 <div class="main-container">
     <div class="header-nomes">
@@ -738,9 +723,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# ==============================
-# INFORMAÇÕES DO EVENTO
-# ==============================
 st.markdown("""
     <div style='text-align: center; margin: 3rem 0;'>
         <div style='background: rgba(255, 255, 255, 0.75); 
@@ -773,9 +755,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# ==============================
-# CONTADORES PREMIUM (40 VAGAS)
-# ==============================
 total_banco_atual = contar_participantes()
 proximo_numero_atual = obter_proximo_numero()
 
@@ -850,9 +829,6 @@ with col3:
     </div>
     """, unsafe_allow_html=True)
 
-# ==============================
-# FORMULÁRIO PREMIUM
-# ==============================
 st.markdown("""
 <div class="form-container">
     <h2 class="form-title">🧘 GARANTA SUA VAGA NO PILATES!</h2>
@@ -861,7 +837,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Estado da sessão
 if 'mostrar_caixa_sucesso' not in st.session_state:
     st.session_state.mostrar_caixa_sucesso = False
 if 'numero_vip_sucesso' not in st.session_state:
@@ -889,7 +864,6 @@ with st.form("cadastro_premium"):
             max_chars=14
         )
     
-    # SETOR LIVRE (TEXT INPUT)
     setor = st.text_input(
         "SETOR DE ATUAÇÃO",
         placeholder="Ex: TI, Comercial, Produção... (opcional)",
@@ -908,7 +882,6 @@ with st.form("cadastro_premium"):
         max_chars=15
     )
     
-    # Caixas de mensagem
     if st.session_state.mostrar_caixa_sucesso:
         st.markdown(f"""
         <div style='
@@ -975,7 +948,6 @@ with st.form("cadastro_premium"):
         </div>
         """, unsafe_allow_html=True)
     
-    # Botão de submit
     submitted = st.form_submit_button(
         "🧘 CLIQUE AQUI PRA GARANTIR SUA VAGA NO PILATES! 🧘",
         use_container_width=True
@@ -993,9 +965,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ==============================
-# PROCESSAMENTO DO FORMULÁRIO
-# ==============================
 if submitted:
     st.session_state.mostrar_caixa_sucesso = False
     st.session_state.mostrar_caixa_erro = False
@@ -1062,9 +1031,6 @@ if submitted:
     
     st.rerun()
 
-# ==============================
-# CONTADOR DE VAGAS (40 VAGAS)
-# ==============================
 total_final = contar_participantes()
 vagas_restantes = 40 - total_final if total_final < 40 else 0
 
@@ -1120,9 +1086,6 @@ else:
 
 st.markdown("</div>", unsafe_allow_html=True)
 
-# ==============================
-# RODAPÉ
-# ==============================
 st.markdown("""
 <div style="text-align: center; padding: 2rem 1rem; margin-top: 1.5rem; 
             border-top: 2px solid rgba(196, 181, 253, 0.5);
