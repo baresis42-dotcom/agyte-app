@@ -143,677 +143,323 @@ def obter_proximo_numero():
         print(f"Erro ao obter próximo número: {e}")
         return 1
 
+# --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="CONFRA AULÃO FUNCIONAL",
-    page_icon="💪",
+    page_icon="🔥",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
+# --- CSS CUSTOMIZADO (LAYOUT AGRESSIVO E MODERNO) ---
 st.markdown("""
 <style>
-    /* FUNDO COM GRADIENTE ROSA/ROXO VIBRANTE (Baseado no cartaz) */
+    /* FUNDO DINÂMICO - ROSA/ROXO/LARANJA (ENERGIA) */
     .stApp {
-        background: 
-            linear-gradient(135deg, 
-                #fdf2f8 0%, 
-                #fce7f3 15%, 
-                #fbcfe8 30%, 
-                #f9a8d4 50%, 
-                #fbcfe8 70%, 
-                #fce7f3 85%, 
-                #fdf2f8 100%);
+        background: linear-gradient(-45deg, #ff0080, #ff8c00, #7b2cbf, #ff0080);
         background-size: 400% 400%;
-        animation: fluidGradient 12s ease infinite;
+        animation: gradientBG 10s ease infinite;
         min-height: 100vh;
-        position: relative;
         overflow-x: hidden;
-        overflow-y: auto;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
-    @keyframes fluidGradient {
+    @keyframes gradientBG {
         0% { background-position: 0% 50%; }
-        25% { background-position: 50% 100%; }
         50% { background-position: 100% 50%; }
-        75% { background-position: 50% 0%; }
         100% { background-position: 0% 50%; }
     }
-    
-    /* EFEITO DE RESPIRAÇÃO */
-    @keyframes breathe {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.03); }
-    }
-    
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-        20%, 40%, 60%, 80% { transform: translateX(5px); }
-    }
-    
-    body.shake {
-        animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.04); }
-    }
-    
-    @keyframes zenGlow {
-        0%, 100% { 
-            opacity: 1;
-            box-shadow: 0 0 50px rgba(219, 39, 119, 0.6);
-        }
-        50% { 
-            opacity: 0.95;
-            box-shadow: 0 0 80px rgba(244, 114, 182, 0.9);
-        }
-    }
-    
-    @keyframes blinkRed {
-        0%, 100% { 
-            opacity: 1;
-            box-shadow: 0 0 60px rgba(239, 68, 68, 0.8);
-        }
-        50% { 
-            opacity: 0.9;
-            box-shadow: 0 0 100px rgba(239, 68, 68, 1);
-        }
-    }
-    
-    @keyframes vipPulse {
-        0% { 
-            transform: scale(1);
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
-        }
-        100% { 
-            transform: scale(1.06);
-            text-shadow: 0 0 60px rgba(255, 255, 255, 1);
-        }
-    }
-    
-    @keyframes iconFloat {
-        0%, 100% { transform: translateY(0) rotate(0deg); }
-        50% { transform: translateY(-18px) rotate(5deg); }
-    }
-    
-    @keyframes glowPulse {
-        0%, 100% { box-shadow: 0 0 40px rgba(219, 39, 119, 0.5); }
-        50% { box-shadow: 0 0 80px rgba(244, 114, 182, 0.8); }
-    }
-    
-    /* LINHAS ABSTRATAS */
-    .abstract-lines {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 0;
-        opacity: 0.1;
-    }
-    
-    .line {
-        position: absolute;
-        height: 1px;
-        background: linear-gradient(90deg, 
-            transparent, 
-            rgba(219, 39, 119, 0.7), 
-            transparent);
-        box-shadow: 0 0 20px rgba(219, 39, 119, 0.3);
-        animation: lineMove 22s linear infinite;
-    }
-    
-    @keyframes lineMove {
-        0% { transform: translateX(-100%) rotate(0deg); }
-        100% { transform: translateX(100vw) rotate(360deg); }
-    }
-    
-    /* CONTAINER PRINCIPAL */
-    .main-container {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(30px);
-        -webkit-backdrop-filter: blur(30px);
-        border-radius: 40px;
-        border: 2px solid rgba(244, 114, 182, 0.5);
-        box-shadow: 
-            0 25px 70px rgba(0, 0, 0, 0.1),
-            0 0 100px rgba(219, 39, 119, 0.25),
-            inset 0 0 60px rgba(255, 255, 255, 0.6);
-        padding: 3rem 2rem;
-        margin: 1rem;
-        position: relative;
-        z-index: 10;
-    }
-    
-    /* HEADER NOMES */
-    .header-nomes {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 3rem;
-        margin-bottom: 2.5rem;
-        width: 100%;
-        flex-wrap: wrap;
-    }
-    
-    .nome-box {
-        padding: 1.2rem 2.5rem;
-        border-radius: 20px;
-        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
+
+    /* EFEITO DE VIDRO (GLASSMORPHISM) */
+    .glass-container {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        padding: 2.5rem;
+        margin: 2rem auto;
+        max-width: 900px;
         text-align: center;
-        min-width: 180px;
-    }
-    
-    .nome-box:hover {
-        transform: scale(1.06);
-    }
-    
-    .nome-sesi-box {
-        background: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%);
-        border: 3px solid rgba(139, 92, 246, 0.6);
-        box-shadow: 
-            0 0 40px rgba(139, 92, 246, 0.4),
-            0 10px 30px rgba(0, 0, 0, 0.08);
-        animation: glowPulse 3s infinite alternate;
-    }
-    
-    .nome-dilady-box {
-        background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
-        border: 3px solid rgba(236, 72, 153, 0.6);
-        box-shadow: 
-            0 0 40px rgba(236, 72, 153, 0.4),
-            0 10px 30px rgba(0, 0, 0, 0.08);
-    }
-    
-    .nome-sesi {
-        font-size: 2.2rem;
-        font-weight: 900;
-        color: #6d28d9;
-        letter-spacing: 8px;
-        text-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-        font-family: 'Arial Black', 'Impact', sans-serif;
-    }
-    
-    .nome-dilady {
-        font-size: 2.2rem;
-        font-weight: 900;
-        color: #be185d;
-        letter-spacing: 4px;
-        text-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
-        font-family: 'Georgia', 'Times New Roman', serif;
-        font-style: italic;
-    }
-    
-    /* CIRCLE HEADER */
-    .circle-header {
-        width: 220px;
-        height: 220px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #f472b6 0%, #ec4899 30%, #db2777 70%, #be185d 100%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 1.5rem;
-        box-shadow: 
-            0 10px 35px rgba(219, 39, 119, 0.4),
-            0 0 80px rgba(244, 114, 182, 0.6),
-            inset 0 0 50px rgba(255, 255, 255, 0.4);
-        border: 4px solid rgba(255, 255, 255, 0.8);
+        color: white;
         position: relative;
         overflow: hidden;
-        animation: breathe 5s infinite ease-in-out, glowPulse 3s infinite alternate;
-        margin: 0 auto;
     }
-    
-    .circle-header::before {
+
+    .glass-container::before {
         content: '';
         position: absolute;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        animation: circleRotate 10s linear infinite;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+        animation: rotateGlow 15s linear infinite;
+        z-index: -1;
     }
-    
-    @keyframes circleRotate {
+
+    @keyframes rotateGlow {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
-    
-    .circle-header .programa {
-        font-size: 0.95rem;
-        font-weight: 800;
-        color: white;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        margin-bottom: 0.3rem;
-        text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
-        position: relative;
-        z-index: 1;
-    }
-    
-    .circle-header .title {
-        font-size: clamp(1.5rem, 5vw, 2rem);
+
+    /* TÍTULOS IMPACTANTES */
+    .main-title {
+        font-size: 4rem;
         font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 5px;
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 0 20px rgba(255, 0, 128, 0.8), 0 0 40px rgba(255, 140, 0, 0.6);
+        animation: pulseTitle 2s infinite alternate;
+    }
+
+    @keyframes pulseTitle {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.02); }
+    }
+
+    .sub-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 2px;
+        margin-bottom: 2rem;
+        text-transform: uppercase;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    /* BADGES DE INFO */
+    .info-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.4);
+        border: 2px solid #ff0080;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0.5rem;
+        box-shadow: 0 0 15px rgba(255, 0, 128, 0.5);
+        transition: all 0.3s ease;
         color: white;
-        margin: 0.2rem 0;
+    }
+
+    .info-badge:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0 30px rgba(255, 0, 128, 1);
+        border-color: #ff8c00;
+    }
+
+    /* CARDS DE ESTATÍSTICA */
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        backdrop-filter: blur(10px);
+        transition: transform 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: scale(1.05);
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 900;
+        color: #fff;
+        text-shadow: 0 0 20px rgba(255, 140, 0, 0.8);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #ffcc00;
         text-transform: uppercase;
         letter-spacing: 2px;
-        text-shadow: 
-            0 0 25px rgba(255, 255, 255, 1),
-            0 0 50px rgba(244, 114, 182, 0.8);
-        position: relative;
-        z-index: 1;
-        line-height: 1.1;
     }
-    
-    .circle-header .subtitle {
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: rgba(255, 255, 255, 0.95);
-        letter-spacing: 3px;
-        text-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
-        position: relative;
-        z-index: 1;
-        margin-top: 0.3rem;
-    }
-    
-    /* EVENT BADGE */
-    .event-badge {
-        display: inline-block;
-        background: linear-gradient(45deg, 
-            rgba(219, 39, 119, 0.9), 
-            rgba(244, 114, 182, 0.8));
-        color: white;
-        padding: 1.2rem 3rem;
-        border-radius: 50px;
-        font-weight: 900;
-        letter-spacing: 3px;
-        margin-top: 1.5rem;
-        text-transform: uppercase;
-        font-size: 1.15rem;
-        border: 3px solid rgba(255, 255, 255, 0.7);
-        box-shadow: 
-            0 0 60px rgba(219, 39, 119, 0.7),
-            0 0 100px rgba(244, 114, 182, 0.4),
-            0 20px 50px rgba(0, 0, 0, 0.12);
-        animation: badgeFloat 4s infinite ease-in-out;
-    }
-    
-    @keyframes badgeFloat {
-        0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-10px) scale(1.03); }
-    }
-    
-    /* FORMULÁRIO PREMIUM */
-    .form-container {
-        background: rgba(255, 255, 255, 0.85);
-        border-radius: 30px;
-        padding: 3rem;
-        margin: 2rem auto;
-        max-width: 800px;
-        border: 2px solid rgba(244, 114, 182, 0.5);
-        box-shadow: 
-            0 25px 70px rgba(0, 0, 0, 0.08),
-            0 0 100px rgba(219, 39, 119, 0.3),
-            inset 0 0 60px rgba(255, 255, 255, 0.7);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .form-title {
-        color: #be185d;
-        font-size: 2.5rem;
-        text-align: center;
-        margin-bottom: 1.5rem;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 3px;
-        text-shadow: 0 0 30px rgba(219, 39, 119, 0.5);
-        background: linear-gradient(45deg, #be185d, #f472b6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        position: relative;
-        z-index: 2;
-    }
-    
-    /* INPUTS PREMIUM */
+
+    /* FORMULÁRIO */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
-        background: rgba(255, 255, 255, 0.95) !important;
-        border: 2px solid rgba(244, 114, 182, 0.6) !important;
-        border-radius: 15px !important;
-        padding: 1.2rem !important;
-        font-size: 1.2rem !important;
-        color: #831843 !important;
-        box-shadow: 
-            inset 0 0 25px rgba(219, 39, 119, 0.1),
-            0 0 25px rgba(219, 39, 119, 0.2) !important;
-        transition: all 0.3s ease !important;
-        position: relative;
-        z-index: 2;
+        background: rgba(0, 0, 0, 0.5) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 10px !important;
+        color: white !important;
+        padding: 1rem !important;
+        font-size: 1.1rem !important;
     }
-    
+
     .stTextInput > div > div > input:focus,
     .stSelectbox > div > div > select:focus {
-        border-color: #db2777 !important;
-        box-shadow: 
-            inset 0 0 35px rgba(219, 39, 119, 0.2),
-            0 0 50px rgba(219, 39, 119, 0.5) !important;
-        background: rgba(255, 255, 255, 1) !important;
-        transform: scale(1.02);
+        border-color: #ff0080 !important;
+        box-shadow: 0 0 20px rgba(255, 0, 128, 0.6) !important;
     }
-    
+
     .stTextInput label,
     .stSelectbox label {
-        color: #be185d !important;
-        font-weight: 800 !important;
-        font-size: 1.1rem !important;
+        color: white !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        margin-bottom: 0.5rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* BOTÃO DE INSCRIÇÃO */
+    .stButton button {
+        background: linear-gradient(45deg, #ff0080, #ff8c00);
+        background-size: 200% 200%;
+        color: white !important;
+        border: none !important;
+        border-radius: 50px !important;
+        padding: 1.5rem 2rem !important;
+        font-size: 1.5rem !important;
+        font-weight: 900 !important;
         text-transform: uppercase !important;
         letter-spacing: 2px !important;
-        margin-bottom: 0.8rem !important;
-        text-shadow: 0 0 15px rgba(219, 39, 119, 0.4);
-        position: relative;
-        z-index: 2;
-    }
-    
-    /* BOTÃO PREMIUM - ROSA VIBRANTE */
-    .stButton button {
-        background: linear-gradient(45deg, 
-            #be185d 0%, 
-            #db2777 30%,
-            #f472b6 50%, 
-            #db2777 70%,
-            #be185d 100%) !important;
-        background-size: 300% 100% !important;
-        color: white !important;
-        border: 4px solid rgba(255, 255, 255, 0.9) !important;
-        border-radius: 25px !important;
-        padding: 1.8rem 3rem !important;
-        font-size: 1.8rem !important;
-        font-weight: 900 !important;
-        letter-spacing: 3px !important;
-        text-transform: uppercase !important;
-        transition: all 0.3s ease !important;
         width: 100% !important;
-        margin-top: 2rem !important;
-        box-shadow: 
-            0 0 80px rgba(219, 39, 119, 0.8),
-            0 0 120px rgba(244, 114, 182, 0.5),
-            0 25px 70px rgba(0, 0, 0, 0.15),
-            inset 0 0 50px rgba(255, 255, 255, 0.35) !important;
-        animation: breathe 3s infinite ease-in-out, buttonShine 4s infinite;
-        position: relative;
-        overflow: hidden;
-        z-index: 2;
+        box-shadow: 0 0 30px rgba(255, 0, 128, 0.8), 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: buttonPulse 2s infinite;
         cursor: pointer !important;
-        display: block !important;
-        text-align: center !important;
+        transition: all 0.3s ease !important;
     }
-    
+
     .stButton button:hover {
-        transform: scale(1.06) !important;
-        box-shadow: 
-            0 0 120px rgba(244, 114, 182, 1),
-            0 0 160px rgba(251, 207, 232, 0.7),
-            0 30px 80px rgba(0, 0, 0, 0.2),
-            inset 0 0 60px rgba(255, 255, 255, 0.5) !important;
+        animation: none;
+        transform: scale(1.02);
+        box-shadow: 0 0 50px rgba(255, 140, 0, 1), 0 15px 50px rgba(0, 0, 0, 0.4);
     }
-    
-    @keyframes buttonShine {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
+
+    @keyframes buttonPulse {
+        0% { box-shadow: 0 0 20px rgba(255, 0, 128, 0.6); }
+        50% { box-shadow: 0 0 40px rgba(255, 140, 0, 0.9); }
+        100% { box-shadow: 0 0 20px rgba(255, 0, 128, 0.6); }
     }
-    
-    /* TEXTOS */
-    .texto-roxo {
-        color: #be185d !important;
+
+    /* SUCESSO / ERRO */
+    .success-box {
+        background: linear-gradient(135deg, #00b09b, #96c93d);
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 1rem 0;
+        text-align: center;
+        color: white;
+        box-shadow: 0 0 40px rgba(0, 255, 128, 0.5);
+        animation: popIn 0.5s ease;
     }
-    
-    .texto-destaque {
-        color: #db2777 !important;
-        font-weight: 800 !important;
+
+    .error-box {
+        background: linear-gradient(135deg, #ff416c, #ff4b2b);
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 1rem 0;
+        text-align: center;
+        color: white;
+        box-shadow: 0 0 40px rgba(255, 0, 0, 0.5);
+        animation: shake 0.5s ease;
     }
-    
-    .texto-lavanda {
-        color: #f472b6 !important;
-        font-weight: 700 !important;
+
+    @keyframes popIn {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
     }
-    
-    /* Hide Streamlit elements */
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+
+    /* FOOTER */
+    .footer {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.8);
+        padding: 2rem;
+        font-size: 0.9rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 2rem;
+    }
+
+    /* RESPONSIVIDADE */
+    @media (max-width: 768px) {
+        .main-title { font-size: 2.5rem; }
+        .sub-title { font-size: 1rem; }
+        .glass-container { padding: 1.5rem; margin: 1rem; }
+        .info-badge { padding: 0.8rem 1rem; font-size: 0.9rem; }
+        .stButton button { font-size: 1.2rem !important; padding: 1rem !important; }
+        .stat-number { font-size: 2rem; }
+    }
+
+    /* REMOVER MENUS STREAMLIT */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    .st-emotion-cache-1dp5vir {display: none;}
-    
-    /* MEDIA QUERIES */
-    @media (max-width: 768px) {
-        .main-container {
-            margin: 0.5rem !important;
-            padding: 1.5rem !important;
-            border-radius: 25px !important;
-        }
-        
-        .form-container {
-            padding: 1.5rem !important;
-            margin: 1rem auto !important;
-            border-radius: 20px !important;
-        }
-        
-        .form-title {
-            font-size: 1.8rem !important;
-        }
-        
-        .stTextInput > div > div > input,
-        .stSelectbox > div > div > select {
-            padding: 0.8rem !important;
-            font-size: 1rem !important;
-        }
-        
-        .stButton button {
-            padding: 1rem 1.5rem !important;
-            font-size: 1.2rem !important;
-            letter-spacing: 2px !important;
-        }
-        
-        .circle-header {
-            width: 180px !important;
-            height: 180px !important;
-        }
-        
-        .header-nomes {
-            gap: 1.5rem !important;
-        }
-        
-        .nome-box {
-            padding: 1rem 1.5rem !important;
-            min-width: 140px !important;
-        }
-        
-        .nome-sesi, .nome-dilady {
-            font-size: 1.6rem !important;
-        }
-        
-        .event-badge {
-            padding: 0.8rem 1.5rem !important;
-            font-size: 0.9rem !important;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .main-container {
-            padding: 1rem !important;
-        }
-        
-        .circle-header {
-            width: 150px !important;
-            height: 150px !important;
-        }
-        
-        .nome-sesi, .nome-dilady {
-            font-size: 1.3rem !important;
-        }
-    }
-    
 </style>
 """, unsafe_allow_html=True)
 
+# --- CONTEÚDO PRINCIPAL ---
 st.markdown("""
-<div class="abstract-lines">
-    <div class="line" style="top: 12%; width: 350px; animation-delay: 0s; animation-duration: 28s;"></div>
-    <div class="line" style="top: 38%; width: 450px; animation-delay: 5s; animation-duration: 24s;"></div>
-    <div class="line" style="top: 62%; width: 400px; animation-delay: 10s; animation-duration: 30s;"></div>
-    <div class="line" style="top: 88%; width: 300px; animation-delay: 15s; animation-duration: 26s;"></div>
-    <div class="line" style="top: 28%; width: 250px; animation-delay: 20s; animation-duration: 32s;"></div>
+<div class="glass-container">
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 4rem; margin-bottom: 1rem; animation: iconFloat 3s infinite;">🔥</div>
+        <h1 class="main-title">CONFRA<br>AULÃO FUNCIONAL</h1>
+        <div class="sub-title">VAMOS CONTINUAR O MOVIMENTO!</div>
+    </div>
+    
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+        <div class="info-badge">📅 05 DE DEZEMBRO</div>
+        <div class="info-badge">⏰ 05:45</div>
+        <div class="info-badge">📍 BEIRA MAR</div>
+    </div>
+
+    <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem; border-left: 5px solid #ff0080;">
+        <p style="font-size: 1.1rem; margin: 0; color: #fff;">
+            <strong>Local:</strong> Av. Beira Mar, nº 2340 - Meireles, Fortaleza - CE<br>
+            <small>(Em frente ao Hotel Bourbon)</small>
+        </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div class="stat-card">
+            <div class="stat-number">40</div>
+            <div class="stat-label">Vagas Totais</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">R$ 10</div>
+            <div class="stat-label">Taxa Social</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">+1</div>
+            <div class="stat-label">Dependente</div>
+        </div>
+    </div>
+    
+    <p style="font-size: 0.9rem; color: #ffcc00; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
+        ⚠️ Taxa revertida para instituições carentes
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="main-container">
-    <div class="header-nomes">
-        <div class="nome-box nome-sesi-box">
-            <div class="nome-sesi">SESI</div>
-        </div>
-        <div class="nome-box nome-dilady-box">
-            <div class="nome-dilady">DILADY</div>
-        </div>
-    </div>
-    <div class="circle-header">
-        <div class="programa">CONFRA</div>
-        <div class="title">AULÃO</div>
-        <div class="subtitle">💪 FUNCIONAL 💪</div>
-    </div>
-    <div style="text-align: center;">
-        <div class="event-badge">
-            💪 VAMOS CONTINUAR O MOVIMENTO! 💪
-        </div>
-    </div>
-    <div style="margin-top: 2rem; color: #be185d; font-size: 1.3rem; font-weight: 700; max-width: 700px; margin-left: auto; margin-right: auto; padding: 0 1rem; text-align: center;">
-        Prepare-se para o Aulão Funcional! Um momento de energia, saúde e movimento na praia.
-    </div>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-    <div style='text-align: center; margin: 3rem 0;'>
-        <div style='background: rgba(255, 255, 255, 0.75); 
-                    border-radius: 25px; 
-                    padding: 2rem;
-                    border: 2px solid rgba(244, 114, 182, 0.5);
-                    backdrop-filter: blur(15px);
-                    box-shadow: 0 0 60px rgba(219, 39, 119, 0.3);'>
-            <h2 style='color: #be185d; margin-bottom: 1.5rem; font-size: 2.2rem; text-shadow: 0 0 20px rgba(219, 39, 119, 0.4);'>
-                💪 DETALHES DO EVENTO
-            </h2>
-            <div style='color: #831843; font-size: 1.2rem; line-height: 1.6; padding: 0 1rem;'>
-                <div style='margin-bottom: 1rem;'>
-                    📅 <span style='color: #db2777; font-weight: 700;'>Data:</span> 05 de Dezembro
-                </div>
-                <div style='margin-bottom: 1rem;'>
-                    ⏰ <span style='color: #db2777; font-weight: 700;'>Horário:</span> 05:45
-                </div>
-                <div style='margin-bottom: 1rem;'>
-                    📍 <span style='color: #db2777; font-weight: 700;'>Local:</span> Faixa de Areia Beira Mar (Em frente ao Hotel Bourbon)
-                </div>
-                <div style='margin-bottom: 1rem;'>
-                    📌 <span style='color: #db2777; font-weight: 700;'>Endereço:</span> Av. Beira Mar, nº 2340 - Meireles, Fortaleza - CE
-                </div>
-                <div style='margin-bottom: 1.5rem;'>
-                    💰 <span style='color: #db2777; font-weight: 900;'>Taxa Social:</span> R$ 10,00 (Revertida para instituições carentes)
-                </div>
-                <div style='margin-top: 1rem; color: #db2777; font-weight: 800; font-size: 1.3rem;'>
-                    ⏰ <span style='background: rgba(219, 39, 119, 0.2); padding: 3px 12px; border-radius: 8px;'>INSCRIÇÕES: 25/11/2026 às 12:00</span>
-                </div>
-            </div>
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
+# --- LÓGICA DE DADOS ---
 total_banco_atual = contar_participantes()
 proximo_numero_atual = obter_proximo_numero()
+vagas_restantes = 40 - total_banco_atual
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown(f"""
-    <div style='background: rgba(255, 255, 255, 0.8); 
-                border-radius: 25px; 
-                padding: 2rem; 
-                text-align: center;
-                border: 2px solid rgba(244, 114, 182, 0.5);
-                backdrop-filter: blur(10px);
-                box-shadow: 0 0 40px rgba(219, 39, 119, 0.3);
-                height: 100%;'>
-        <div style='font-size: 4rem; 
-                    font-weight: 900; 
-                    color: #be185d;
-                    text-shadow: 0 0 30px rgba(219, 39, 119, 0.5);
-                    margin-bottom: 0.8rem;'>
-            {total_banco_atual}/40
-        </div>
-        <div style='color: #db2777; 
-                    font-size: 1.2rem; 
-                    text-transform: uppercase; 
-                    letter-spacing: 3px;
-                    font-weight: 700;'>
-            INSCRITOS
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-    st.markdown("""
-    <div style='background: rgba(255, 255, 255, 0.8); 
-                border-radius: 25px; 
-                padding: 2rem; 
-                text-align: center;
-                border: 2px solid rgba(244, 114, 182, 0.5);
-                backdrop-filter: blur(10px);
-                box-shadow: 0 0 40px rgba(219, 39, 119, 0.3);
-                height: 100%;'>
-        <div style='font-size: 3rem; color: #be185d; margin-bottom: 1rem;'>💪</div>
-        <div style='font-size: 1.2rem; color: #831843; font-weight: 900; margin-bottom: 0.5rem; line-height: 1.6;'>
-            AULÃO<br>
-            FUNCIONAL
-        </div>
-        <div style='color: #db2777; font-size: 1.5rem; font-weight: 700;'>
-            40 VAGAS
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-    st.markdown("""
-    <div style='background: rgba(255, 255, 255, 0.8); 
-                border-radius: 25px; 
-                padding: 2rem; 
-                text-align: center;
-                border: 2px solid rgba(244, 114, 182, 0.5);
-                backdrop-filter: blur(10px);
-                box-shadow: 0 0 40px rgba(219, 39, 119, 0.3);
-                height: 100%;'>
-        <div style='font-size: 3rem; color: #be185d; margin-bottom: 1rem;'>📍</div>
-        <div style='font-size: 1.1rem; color: #831843; font-weight: 900; margin-bottom: 0.5rem; line-height: 1.4;'>
-            Beira Mar<br>
-            Meireles
-        </div>
-        <div style='color: #db2777; font-size: 1.2rem; font-weight: 700;'>
-            05/DEZ • 05:45
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
+# --- FORMULÁRIO DE INSCRIÇÃO ---
 st.markdown("""
-<div class="form-container">
-    <h2 class="form-title">💪 GARANTA SUA VAGA NO AULÃO!</h2>
-    <div style='color: #be185d; text-align: center; margin-bottom: 3rem; font-weight: 700; letter-spacing: 2px; font-size: 1.2rem;'>
-        CADA FUNCIONÁRIO PODE LEVAR 1 DEPENDENTE
-    </div>
+<div class="glass-container" style="margin-top: -1rem;">
+    <h2 style="color: #fff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.5rem; text-shadow: 0 0 10px rgba(255,0,128,0.5);">
+        GARANTA SUA VAGA
+    </h2>
 """, unsafe_allow_html=True)
 
 if 'mostrar_caixa_sucesso' not in st.session_state:
@@ -831,22 +477,19 @@ with st.form("cadastro_premium"):
     with col1:
         nome = st.text_input(
             "NOME COMPLETO *",
-            placeholder="DIGITE SEU NOME",
-            help="Nome para o credenciamento"
+            placeholder="Seu nome aqui",
         )
     
     with col2:
         cpf_input = st.text_input(
             "CPF *",
             placeholder="000.000.000-00",
-            help="Digite 11 números (somente números)",
             max_chars=14
         )
     
     setor = st.text_input(
         "SETOR DE ATUAÇÃO",
-        placeholder="Ex: TI, Comercial, Produção... (opcional)",
-        help="Preencha se quiser, não é obrigatório"
+        placeholder="Ex: TI, Comercial... (opcional)"
     )
     
     unidade = st.selectbox(
@@ -857,93 +500,35 @@ with st.form("cadastro_premium"):
     telefone_input = st.text_input(
         "WHATSAPP *",
         placeholder="(85) 99999-9999",
-        help="Digite números com DDD (somente números)",
         max_chars=15
     )
     
     if st.session_state.mostrar_caixa_sucesso:
         st.markdown(f"""
-        <div style='
-            background: linear-gradient(135deg, 
-                rgba(219, 39, 119, 0.95) 0%, 
-                rgba(244, 114, 182, 0.95) 100%);
-            border-radius: 20px;
-            padding: 2rem;
-            margin: 2rem 0;
-            border: 3px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 
-                0 0 60px rgba(219, 39, 119, 0.8),
-                0 20px 50px rgba(0, 0, 0, 0.15),
-                inset 0 0 30px rgba(255, 255, 255, 0.3);
-            animation: zenGlow 2s infinite alternate;
-            text-align: center;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-        '>
-            <div style='font-size: 3rem; margin-bottom: 1rem; animation: iconFloat 3s infinite ease-in-out;'>💪</div>
-            <div style='font-size: 2.2rem; font-weight: 900; color: #ffffff; margin-bottom: 1rem; text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);'>
-                ✅ INSCRIÇÃO CONFIRMADA!
-            </div>
-            <div style='font-size: 4rem; font-weight: 900; color: #ffffff; margin: 1rem 0; 
-                      text-shadow: 0 0 30px rgba(255, 255, 255, 1);
-                      animation: vipPulse 2s infinite alternate;'>
-                Nº {st.session_state.numero_vip_sucesso}
-            </div>
-            <div style='font-size: 1.5rem; color: #ffffff; font-weight: 700;'>
-                VAGA GARANTIDA NO AULÃO FUNCIONAL! 💪
-            </div>
-            <div style='font-size: 1.1rem; color: #ffffff; margin-top: 0.5rem;'>
-                05/DEZ • 05:45 • Beira Mar
-            </div>
+        <div class="success-box">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+            <h3 style="margin: 0; font-size: 2rem;">INSCRIÇÃO CONFIRMADA!</h3>
+            <div style="font-size: 3rem; font-weight: 900; margin: 1rem 0;">Nº {st.session_state.numero_vip_sucesso}</div>
+            <p style="font-size: 1.2rem;">Nos vemos no Aulão! 💪</p>
         </div>
         """, unsafe_allow_html=True)
     
     if st.session_state.mostrar_caixa_erro:
         st.markdown(f"""
-        <div style='
-            background: linear-gradient(135deg, 
-                rgba(220, 38, 38, 0.95) 0%, 
-                rgba(239, 68, 68, 0.95) 100%);
-            border-radius: 20px;
-            padding: 2rem;
-            margin: 2rem 0;
-            border: 3px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 
-                0 0 60px rgba(239, 68, 68, 0.8),
-                0 20px 50px rgba(0, 0, 0, 0.8),
-                inset 0 0 30px rgba(255, 255, 255, 0.2);
-            animation: blinkRed 1s infinite alternate;
-            text-align: center;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-        '>
-            <div style='font-size: 3rem; margin-bottom: 1rem;'>⚠️</div>
-            <div style='font-size: 2rem; font-weight: 900; color: #ffffff; margin-bottom: 1rem;'>
-                ATENÇÃO!
-            </div>
-            <div style='font-size: 1.6rem; color: #ffffff; font-weight: 700;'>
-                {st.session_state.mensagem_erro}
-            </div>
+        <div class="error-box">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+            <h3 style="margin: 0; font-size: 1.5rem;">{st.session_state.mensagem_erro}</h3>
         </div>
         """, unsafe_allow_html=True)
     
     submitted = st.form_submit_button(
-        "💪 CLIQUE AQUI PRA GARANTIR SUA VAGA NO AULÃO! 💪",
+        "🔥 QUERO MINHA VAGA AGORA! 🔥",
         use_container_width=True
     )
 
-st.markdown("""
-<div style="text-align: center; margin: 1.5rem 0; padding: 1.2rem; background: rgba(244, 114, 182, 0.25); border-radius: 15px; border: 3px dashed rgba(219, 39, 119, 0.5); box-shadow: 0 0 30px rgba(219, 39, 119, 0.3);">
-    <div style="color: #be185d; font-size: 1.3rem; font-weight: 900; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px;">
-        ⚡ PREENCHA TODOS OS CAMPOS ACIMA ⚡
-    </div>
-    <div style="color: #831843; font-size: 1.1rem; font-weight: 700;">
-        E CLIQUE NO BOTÃO ROSA PARA FINALIZAR!
-    </div>
-</div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
+# --- PROCESSAMENTO ---
 if submitted:
     st.session_state.mostrar_caixa_sucesso = False
     st.session_state.mostrar_caixa_erro = False
@@ -962,22 +547,22 @@ if submitted:
         st.rerun()
     
     elif len(cpf_limpo) != 11:
-        st.session_state.mensagem_erro = f"CPF deve ter 11 números! Você digitou {len(cpf_limpo)}."
+        st.session_state.mensagem_erro = f"CPF inválido! Digite 11 números."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
     elif len(telefone_limpo) < 10:
-        st.session_state.mensagem_erro = f"Telefone deve ter pelo menos 10 números! Você digitou {len(telefone_limpo)}."
+        st.session_state.mensagem_erro = f"Telefone inválido! Digite com DDD."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
-    elif total_banco_atual >= 40:
-        st.session_state.mensagem_erro = "VAGAS ESGOTADAS! Todas as 40 vagas do AULÃO FUNCIONAL já foram preenchidas."
+    elif total_banco_atual >= 50:
+        st.session_state.mensagem_erro = "VAGAS ESGOTADAS! 😭"
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
     elif verificar_cpf_existente(cpf_limpo):
-        st.session_state.mensagem_erro = "Este CPF já está cadastrado no AULÃO FUNCIONAL!"
+        st.session_state.mensagem_erro = "Este CPF já está cadastrado!"
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
@@ -997,7 +582,6 @@ if submitted:
         if success:
             st.session_state.numero_vip_sucesso = proximo_numero_atual
             st.session_state.mostrar_caixa_sucesso = True
-            
             html("""
             <script>
             document.body.classList.add("shake");
@@ -1010,84 +594,26 @@ if submitted:
     
     st.rerun()
 
+# --- CONTADOR FINAL E RODAPÉ ---
 total_final = contar_participantes()
-vagas_restantes = 40 - total_final if total_final < 40 else 0
+vagas_restantes = 50 - total_final if total_final < 50 else 0
 
 st.markdown(f"""
-<div style='text-align: center; padding: 1.5rem; 
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(244, 114, 182, 0.4));
-            border-radius: 20px; 
-            border: 2px solid rgba(244, 114, 182, 0.5);
-            margin-top: 1rem;'>
-    <div style='font-size: 3.5rem; font-weight: 900; 
-                color: #be185d;
-                text-shadow: 0 0 30px rgba(219, 39, 119, 0.5);
-                margin-bottom: 0.5rem;'>
+<div class="glass-container" style="text-align: center;">
+    <div style="font-size: 3rem; font-weight: 900; color: #fff; text-shadow: 0 0 20px rgba(255,0,128,0.8);">
         {total_final}/40
     </div>
-    <div style='color: #831843; 
-                font-weight: 800; 
-                letter-spacing: 3px;
-                text-transform: uppercase;
-                font-size: 1.2rem;
-                margin-bottom: 0.8rem;'>
-        INSCRIÇÕES CONFIRMADAS
+    <div style="color: #ffcc00; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">
+        INSCRITOS
     </div>
-""", unsafe_allow_html=True)
-
-if total_final >= 40:
-    st.markdown(f"""
-    <div style='color: #ef4444; 
-                font-size: 1.1rem; 
-                font-weight: 900;
-                background: rgba(255, 255, 255, 0.8);
-                padding: 0.8rem 1.5rem;
-                border-radius: 12px;
-                display: inline-block;
-                box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-                animation: pulse 2s infinite;'>
-        🚫 VAGAS ESGOTADAS • {total_final}/40
-    </div>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown(f"""
-    <div style='color: #db2777; 
-                font-size: 1rem; 
-                font-weight: 700;
-                background: rgba(255, 255, 255, 0.8);
-                padding: 0.8rem 1.5rem;
-                border-radius: 12px;
-                display: inline-block;
-                box-shadow: 0 0 20px rgba(219, 39, 119, 0.3);'>
-        {vagas_restantes} VAGAS RESTANTES
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-st.markdown("""
-<div style="text-align: center; padding: 2rem 1rem; margin-top: 1.5rem; 
-            border-top: 2px solid rgba(244, 114, 182, 0.5);
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 0 0 30px 30px;">
-    <div style="font-size: 3rem; font-weight: 900; 
-                color: #db2777;
-                text-shadow: 0 0 40px rgba(219, 39, 119, 0.6);
-                margin-bottom: 1rem;">
-        CONFRA AULÃO FUNCIONAL
-    </div>
-    <div style="color: #be185d; margin-bottom: 0.8rem; font-size: 1.4rem; font-weight: 700;">
-        💪 VAMOS CONTINUAR O MOVIMENTO!
-    </div>
-    <div style="color: #831843; font-size: 1rem; letter-spacing: 2px; margin-bottom: 0.5rem;">
-        📍 Faixa de Areia Beira Mar - Meireles
-    </div>
-    <div style="color: #831843; font-size: 0.9rem; letter-spacing: 1px;">
-        05 DE DEZEMBRO • 05:45 • 40 VAGAS
-    </div>
-    <div style="color: #db2777; font-size: 1rem; font-weight: 700; margin-top: 0.8rem; letter-spacing: 1px;">
-        ⏰ INSCRIÇÕES ABREM 25/11/2026 ÀS 12:00
+    <div style="margin-top: 1rem; color: #fff; font-size: 1.1rem;">
+        {'🚫 VAGAS ESGOTADAS' if total_final >= 50 else f'🔥 Apenas {vagas_restantes} vagas restantes!'}
     </div>
 </div>
+
+<div class="footer">
+    <p style="font-size: 1.2rem; font-weight: bold; color: #fff; margin-bottom: 0.5rem;">CONFRA AULÃO FUNCIONAL</p>
+    <p>📅 05/DEZ • ⏰ 05:45 • 📍 Beira Mar</p>
+    <p style="font-size: 0.8rem; margin-top: 1rem; opacity: 0.7;">&copy; 2024 - Todos os direitos reservados</p>
 </div>
 """, unsafe_allow_html=True)
