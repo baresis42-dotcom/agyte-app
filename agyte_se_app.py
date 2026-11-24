@@ -76,7 +76,7 @@ def inserir_participante(nome, cpf, setor, unidade, telefone, numero_vip, evento
         return False, str(e)
 
 def contar_participantes():
-    """Conta o total de participantes no banco - SEMPRE CONSULTA ATUALIZADA"""
+    """Conta o total de participantes no banco"""
     try:
         conn = get_connection()
         if conn is None:
@@ -95,7 +95,7 @@ def contar_participantes():
         return 0
 
 def verificar_cpf_existente(cpf):
-    """Verifica se CPF já está cadastrado no banco - CONSULTA ATUALIZADA"""
+    """Verifica se CPF já está cadastrado no banco"""
     try:
         conn = get_connection()
         if conn is None:
@@ -121,7 +121,7 @@ def verificar_cpf_existente(cpf):
         return False
 
 def obter_proximo_numero():
-    """Obtém o próximo número VIP baseado no banco - CONSULTA ATUALIZADA"""
+    """Obtém o próximo número VIP baseado no banco"""
     try:
         conn = get_connection()
         if conn is None:
@@ -145,23 +145,21 @@ def obter_proximo_numero():
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
-    page_title="CONFRA AULÃO FUNCIONAL",
+    page_title="AULÃO FUNCIONAL",
     page_icon="🔥",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- CSS CUSTOMIZADO (LAYOUT AGRESSIVO E MODERNO) ---
+# --- CSS CUSTOMIZADO (CORRIGIDO E MAIS BONITO) ---
 st.markdown("""
 <style>
-    /* FUNDO DINÂMICO - ROSA/ROXO/LARANJA (ENERGIA) */
+    /* FUNDO DINÂMICO - ROSA/ROXO/LARANJA */
     .stApp {
         background: linear-gradient(-45deg, #ff0080, #ff8c00, #7b2cbf, #ff0080);
         background-size: 400% 400%;
-        animation: gradientBG 10s ease infinite;
+        animation: gradientBG 12s ease infinite;
         min-height: 100vh;
-        overflow-x: hidden;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
     @keyframes gradientBG {
@@ -170,59 +168,34 @@ st.markdown("""
         100% { background-position: 0% 50%; }
     }
 
-    /* EFEITO DE VIDRO (GLASSMORPHISM) */
+    /* EFEITO DE VIDRO */
     .glass-container {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 30px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 25px;
         border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-        padding: 2.5rem;
-        margin: 2rem auto;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        padding: 2rem;
+        margin: 1.5rem auto;
         max-width: 900px;
-        text-align: center;
         color: white;
-        position: relative;
-        overflow: hidden;
+        text-align: center;
     }
 
-    .glass-container::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-        animation: rotateGlow 15s linear infinite;
-        z-index: -1;
-    }
-
-    @keyframes rotateGlow {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    /* TÍTULOS IMPACTANTES */
+    /* TÍTULOS */
     .main-title {
-        font-size: 4rem;
+        font-size: 3.5rem;
         font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: 5px;
+        letter-spacing: 4px;
         line-height: 1.1;
         margin-bottom: 0.5rem;
-        text-shadow: 0 0 20px rgba(255, 0, 128, 0.8), 0 0 40px rgba(255, 140, 0, 0.6);
-        animation: pulseTitle 2s infinite alternate;
-    }
-
-    @keyframes pulseTitle {
-        0% { transform: scale(1); }
-        100% { transform: scale(1.02); }
+        text-shadow: 0 0 20px rgba(255, 0, 128, 0.8);
     }
 
     .sub-title {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         font-weight: 700;
         color: #fff;
         letter-spacing: 2px;
@@ -231,175 +204,115 @@ st.markdown("""
         text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
 
-    /* BADGES DE INFO */
-    .info-badge {
-        display: inline-flex;
-        align-items: center;
+    /* BADGES */
+    .badge-container {
+        display: flex;
+        flex-wrap: wrap;
         justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .info-badge {
         background: rgba(0, 0, 0, 0.4);
         border: 2px solid #ff0080;
-        padding: 1rem 2rem;
+        padding: 10px 20px;
         border-radius: 50px;
-        font-size: 1.2rem;
+        font-size: 1rem;
         font-weight: 700;
-        margin: 0.5rem;
         box-shadow: 0 0 15px rgba(255, 0, 128, 0.5);
-        transition: all 0.3s ease;
         color: white;
     }
 
-    .info-badge:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0 30px rgba(255, 0, 128, 1);
-        border-color: #ff8c00;
+    /* CARDS */
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
     }
-
-    /* CARDS DE ESTATÍSTICA */
+    
     .stat-card {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
+        border-radius: 15px;
         padding: 1.5rem;
         text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        backdrop-filter: blur(10px);
-        transition: transform 0.3s;
-    }
-
-    .stat-card:hover {
-        transform: scale(1.05);
-        background: rgba(255, 255, 255, 0.2);
     }
 
     .stat-number {
-        font-size: 3rem;
+        font-size: 2.5rem;
         font-weight: 900;
         color: #fff;
-        text-shadow: 0 0 20px rgba(255, 140, 0, 0.8);
-        margin-bottom: 0.5rem;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
     .stat-label {
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 700;
         color: #ffcc00;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 1px;
+        margin-top: 5px;
     }
 
     /* FORMULÁRIO */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select {
-        background: rgba(0, 0, 0, 0.5) !important;
+        background: rgba(0, 0, 0, 0.4) !important;
         border: 2px solid rgba(255, 255, 255, 0.3) !important;
         border-radius: 10px !important;
         color: white !important;
-        padding: 1rem !important;
-        font-size: 1.1rem !important;
-    }
-
-    .stTextInput > div > div > input:focus,
-    .stSelectbox > div > div > select:focus {
-        border-color: #ff0080 !important;
-        box-shadow: 0 0 20px rgba(255, 0, 128, 0.6) !important;
+        padding: 10px !important;
     }
 
     .stTextInput label,
     .stSelectbox label {
         color: white !important;
         font-weight: 700 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 1px !important;
-        margin-bottom: 0.5rem !important;
-        font-size: 0.9rem !important;
+        font-size: 1rem !important;
     }
 
-    /* BOTÃO DE INSCRIÇÃO */
+    /* BOTÃO */
     .stButton button {
         background: linear-gradient(45deg, #ff0080, #ff8c00);
-        background-size: 200% 200%;
         color: white !important;
         border: none !important;
         border-radius: 50px !important;
-        padding: 1.5rem 2rem !important;
-        font-size: 1.5rem !important;
+        padding: 1rem 2rem !important;
+        font-size: 1.3rem !important;
         font-weight: 900 !important;
         text-transform: uppercase !important;
-        letter-spacing: 2px !important;
         width: 100% !important;
-        box-shadow: 0 0 30px rgba(255, 0, 128, 0.8), 0 10px 40px rgba(0, 0, 0, 0.3);
-        animation: buttonPulse 2s infinite;
-        cursor: pointer !important;
+        box-shadow: 0 0 20px rgba(255, 0, 128, 0.8);
         transition: all 0.3s ease !important;
     }
 
     .stButton button:hover {
-        animation: none;
         transform: scale(1.02);
-        box-shadow: 0 0 50px rgba(255, 140, 0, 1), 0 15px 50px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 0 40px rgba(255, 140, 0, 1);
     }
 
-    @keyframes buttonPulse {
-        0% { box-shadow: 0 0 20px rgba(255, 0, 128, 0.6); }
-        50% { box-shadow: 0 0 40px rgba(255, 140, 0, 0.9); }
-        100% { box-shadow: 0 0 20px rgba(255, 0, 128, 0.6); }
-    }
-
-    /* SUCESSO / ERRO */
+    /* CAIXAS DE MENSAGEM */
     .success-box {
         background: linear-gradient(135deg, #00b09b, #96c93d);
-        border-radius: 20px;
-        padding: 2rem;
+        border-radius: 15px;
+        padding: 1.5rem;
         margin: 1rem 0;
-        text-align: center;
         color: white;
-        box-shadow: 0 0 40px rgba(0, 255, 128, 0.5);
-        animation: popIn 0.5s ease;
+        text-align: center;
     }
 
     .error-box {
         background: linear-gradient(135deg, #ff416c, #ff4b2b);
-        border-radius: 20px;
-        padding: 2rem;
+        border-radius: 15px;
+        padding: 1.5rem;
         margin: 1rem 0;
-        text-align: center;
         color: white;
-        box-shadow: 0 0 40px rgba(255, 0, 0, 0.5);
-        animation: shake 0.5s ease;
-    }
-
-    @keyframes popIn {
-        0% { transform: scale(0.8); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-10px); }
-        75% { transform: translateX(10px); }
-    }
-
-    /* FOOTER */
-    .footer {
         text-align: center;
-        color: rgba(255, 255, 255, 0.8);
-        padding: 2rem;
-        font-size: 0.9rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        margin-top: 2rem;
     }
-
-    /* RESPONSIVIDADE */
-    @media (max-width: 768px) {
-        .main-title { font-size: 2.5rem; }
-        .sub-title { font-size: 1rem; }
-        .glass-container { padding: 1.5rem; margin: 1rem; }
-        .info-badge { padding: 0.8rem 1rem; font-size: 0.9rem; }
-        .stButton button { font-size: 1.2rem !important; padding: 1rem !important; }
-        .stat-number { font-size: 2rem; }
-    }
-
-    /* REMOVER MENUS STREAMLIT */
+    
+    /* ESCONDER MENU STREAMLIT */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
@@ -409,28 +322,28 @@ st.markdown("""
 # --- CONTEÚDO PRINCIPAL ---
 st.markdown("""
 <div class="glass-container">
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <div style="font-size: 4rem; margin-bottom: 1rem; animation: iconFloat 3s infinite;">🔥</div>
-        <h1 class="main-title">CONFRA<br>AULÃO FUNCIONAL</h1>
+    <div style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🔥</div>
+        <h1 class="main-title">AULÃO<br>FUNCIONAL</h1>
         <div class="sub-title">VAMOS CONTINUAR O MOVIMENTO!</div>
     </div>
     
-    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+    <div class="badge-container">
         <div class="info-badge">📅 05 DE DEZEMBRO</div>
         <div class="info-badge">⏰ 05:45</div>
         <div class="info-badge">📍 BEIRA MAR</div>
     </div>
 
-    <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem; border-left: 5px solid #ff0080;">
+    <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem; border-left: 5px solid #ff0080; text-align: left;">
         <p style="font-size: 1.1rem; margin: 0; color: #fff;">
             <strong>Local:</strong> Av. Beira Mar, nº 2340 - Meireles, Fortaleza - CE<br>
             <small>(Em frente ao Hotel Bourbon)</small>
         </p>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card-grid">
         <div class="stat-card">
-            <div class="stat-number">40</div>
+            <div class="stat-number">50</div>
             <div class="stat-label">Vagas Totais</div>
         </div>
         <div class="stat-card">
@@ -443,7 +356,7 @@ st.markdown("""
         </div>
     </div>
     
-    <p style="font-size: 0.9rem; color: #ffcc00; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
+    <p style="font-size: 0.9rem; color: #ffcc00; font-weight: bold; text-transform: uppercase;">
         ⚠️ Taxa revertida para instituições carentes
     </p>
 </div>
@@ -452,12 +365,12 @@ st.markdown("""
 # --- LÓGICA DE DADOS ---
 total_banco_atual = contar_participantes()
 proximo_numero_atual = obter_proximo_numero()
-vagas_restantes = 40 - total_banco_atual
+vagas_restantes = 50 - total_banco_atual # Ajustado para 50
 
 # --- FORMULÁRIO DE INSCRIÇÃO ---
 st.markdown("""
 <div class="glass-container" style="margin-top: -1rem;">
-    <h2 style="color: #fff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.5rem; text-shadow: 0 0 10px rgba(255,0,128,0.5);">
+    <h2 style="color: #fff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.5rem;">
         GARANTA SUA VAGA
     </h2>
 """, unsafe_allow_html=True)
@@ -475,56 +388,34 @@ with st.form("cadastro_premium"):
     col1, col2 = st.columns(2)
     
     with col1:
-        nome = st.text_input(
-            "NOME COMPLETO *",
-            placeholder="Seu nome aqui",
-        )
+        nome = st.text_input("NOME COMPLETO *", placeholder="Seu nome aqui")
+        setor = st.text_input("SETOR DE ATUAÇÃO", placeholder="Ex: TI, Comercial... (opcional)")
+        telefone_input = st.text_input("WHATSAPP *", placeholder="(85) 99999-9999", max_chars=15)
     
     with col2:
-        cpf_input = st.text_input(
-            "CPF *",
-            placeholder="000.000.000-00",
-            max_chars=14
-        )
-    
-    setor = st.text_input(
-        "SETOR DE ATUAÇÃO",
-        placeholder="Ex: TI, Comercial... (opcional)"
-    )
-    
-    unidade = st.selectbox(
-        "UNIDADE *",
-        ["🏢 DILADY", "💖 FINNA", "❤️ LOVE"]
-    )
-    
-    telefone_input = st.text_input(
-        "WHATSAPP *",
-        placeholder="(85) 99999-9999",
-        max_chars=15
-    )
+        cpf_input = st.text_input("CPF *", placeholder="000.000.000-00", max_chars=14)
+        unidade = st.selectbox("UNIDADE *", ["🏢 DILADY", "💖 FINNA", "❤️ LOVE"])
+        # Espaço vazio para alinhar o botão visualmente se necessário
     
     if st.session_state.mostrar_caixa_sucesso:
         st.markdown(f"""
         <div class="success-box">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
-            <h3 style="margin: 0; font-size: 2rem;">INSCRIÇÃO CONFIRMADA!</h3>
-            <div style="font-size: 3rem; font-weight: 900; margin: 1rem 0;">Nº {st.session_state.numero_vip_sucesso}</div>
-            <p style="font-size: 1.2rem;">Nos vemos no Aulão! 💪</p>
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
+            <h3 style="margin: 0; font-size: 1.5rem;">INSCRIÇÃO CONFIRMADA!</h3>
+            <div style="font-size: 2.5rem; font-weight: 900; margin: 1rem 0;">Nº {st.session_state.numero_vip_sucesso}</div>
+            <p style="font-size: 1rem;">Nos vemos no Aulão! 💪</p>
         </div>
         """, unsafe_allow_html=True)
     
     if st.session_state.mostrar_caixa_erro:
         st.markdown(f"""
         <div class="error-box">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
-            <h3 style="margin: 0; font-size: 1.5rem;">{st.session_state.mensagem_erro}</h3>
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⚠️</div>
+            <h3 style="margin: 0; font-size: 1.2rem;">{st.session_state.mensagem_erro}</h3>
         </div>
         """, unsafe_allow_html=True)
     
-    submitted = st.form_submit_button(
-        "🔥 QUERO MINHA VAGA AGORA! 🔥",
-        use_container_width=True
-    )
+    submitted = st.form_submit_button("🔥 QUERO MINHA VAGA AGORA! 🔥", use_container_width=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -547,16 +438,16 @@ if submitted:
         st.rerun()
     
     elif len(cpf_limpo) != 11:
-        st.session_state.mensagem_erro = f"CPF inválido! Digite 11 números."
+        st.session_state.mensagem_erro = "CPF inválido! Digite 11 números."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
     elif len(telefone_limpo) < 10:
-        st.session_state.mensagem_erro = f"Telefone inválido! Digite com DDD."
+        st.session_state.mensagem_erro = "Telefone inválido! Digite com DDD."
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
     
-    elif total_banco_atual >= 50:
+    elif total_banco_atual >= 50: # Ajustado para 50
         st.session_state.mensagem_erro = "VAGAS ESGOTADAS! 😭"
         st.session_state.mostrar_caixa_erro = True
         st.rerun()
@@ -582,12 +473,6 @@ if submitted:
         if success:
             st.session_state.numero_vip_sucesso = proximo_numero_atual
             st.session_state.mostrar_caixa_sucesso = True
-            html("""
-            <script>
-            document.body.classList.add("shake");
-            setTimeout(() => document.body.classList.remove("shake"), 400);
-            </script>
-            """, height=0)
         else:
             st.session_state.mensagem_erro = f"Erro: {message}"
             st.session_state.mostrar_caixa_erro = True
@@ -596,12 +481,12 @@ if submitted:
 
 # --- CONTADOR FINAL E RODAPÉ ---
 total_final = contar_participantes()
-vagas_restantes = 50 - total_final if total_final < 50 else 0
+vagas_restantes = 50 - total_final if total_final < 50 else 0 # Ajustado para 50
 
 st.markdown(f"""
 <div class="glass-container" style="text-align: center;">
     <div style="font-size: 3rem; font-weight: 900; color: #fff; text-shadow: 0 0 20px rgba(255,0,128,0.8);">
-        {total_final}/40
+        {total_final}/50
     </div>
     <div style="color: #ffcc00; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">
         INSCRITOS
@@ -611,9 +496,7 @@ st.markdown(f"""
     </div>
 </div>
 
-<div class="footer">
-    <p style="font-size: 1.2rem; font-weight: bold; color: #fff; margin-bottom: 0.5rem;">CONFRA AULÃO FUNCIONAL</p>
-    <p>📅 05/DEZ • ⏰ 05:45 • 📍 Beira Mar</p>
-    <p style="font-size: 0.8rem; margin-top: 1rem; opacity: 0.7;">&copy; 2024 - Todos os direitos reservados</p>
+<div style="text-align: center; color: rgba(255,255,255,0.7); padding: 2rem; font-size: 0.8rem;">
+    <p>AULÃO FUNCIONAL • 05/DEZ • 05:45 • BEIRA MAR</p>
 </div>
 """, unsafe_allow_html=True)
